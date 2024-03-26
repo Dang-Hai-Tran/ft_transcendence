@@ -13,7 +13,6 @@ services:
       - "5432:5432"
     networks:
       - transcendence
-      - default
     healthcheck:
       test: ["CMD", "pg_isready", "-q", "-d", "${POSTGRES_DB}", "-U", "${POSTGRES_USER}"]
       interval: 5s
