@@ -4,7 +4,8 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from datetime import timedelta
 from django.utils import timezone
-import pyotp
+import pyotp, pyqrcode, base64
+import io
 
 # Create your models here.
 

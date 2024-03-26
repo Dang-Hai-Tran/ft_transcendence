@@ -11,6 +11,8 @@ psycopg2 = "*"
 django-environs = "*"
 django-filter = "*"
 pyotp = "*"
+pyqrcode = "*"
+pypng = "*"
 
 [dev-packages]
 

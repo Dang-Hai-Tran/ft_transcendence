@@ -1,6 +1,6 @@
 # Import dependencies
 from django.urls import path
-from .views import UserViewSet, ChannelViewSet, GameViewSet, MessageViewSet, MutedCommandViewSet, BannedCommandViewSet, InvitedCommandViewSet, OtpViewSet, OtpVerifyViewSet
+from .views import UserViewSet, ChannelViewSet, GameViewSet, MessageViewSet, MutedCommandViewSet, BannedCommandViewSet, InvitedCommandViewSet, OtpViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
@@ -9,7 +9,8 @@ urlpatterns = [
     path('users', UserViewSet.as_view({'get': 'list', 'post': 'create'})),
     path('users/<int:pk>',
          UserViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'})),
-    path('users/<str:username>', UserViewSet.as_view({'get': 'getUserByUsername'})),
+    path('users/<str:username>',
+         UserViewSet.as_view({'get': 'getUserByUsername'})),
     path('channels', ChannelViewSet.as_view(
         {'get': 'list', 'post': 'create'})),
     path('channels/<int:pk>',
@@ -36,5 +37,6 @@ urlpatterns = [
     path('otps', OtpViewSet.as_view({'get': 'list', 'post': 'create'})),
     path('otps/<int:pk>',
          OtpViewSet.as_view({'get': 'retrieve'})),
-     path('otp/<str:username>', OtpVerifyViewSet.as_view({'get': 'getOtpByUsername', 'post': 'checkOtp'})),
+    path('otps/<str:username>',
+         OtpViewSet.as_view({'get': 'getOtpByUsername', 'post': 'checkOtp'})),
 ]

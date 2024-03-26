@@ -77,10 +77,6 @@ class OtpViewSet(viewsets.ModelViewSet):
         instance = Otp.objects.get(pk=pk)
         otp = instance.getOtp()
         return Response({'otp': otp})
-
-class OtpVerifyViewSet(viewsets.ModelViewSet):
-    queryset = Otp.objects.all()
-    serializer_class = OtpSerializer
     
     def getOtpByUsername(self, request, username):
         user = User.objects.get(username=username)
@@ -88,6 +84,7 @@ class OtpVerifyViewSet(viewsets.ModelViewSet):
             return Response({'message': 'User not found'}, status=404)
         instance = Otp.objects.get(user=user)
         otp = instance.getOtp()
+        print(f'OTP code of {username} is {otp}')
         return Response({'otp': otp}, status=200)
 
     def checkOtp(self, request, username):

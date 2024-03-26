@@ -85,11 +85,11 @@ DATABASES = {
     'default': {
         # Config database Postgres
         'ENGINE': 'django.db.backends.postgresql',
-        'URL': os.getenv('DATABASE_URL'),
-        'NAME': os.getenv('POSTGRES_DB'),
-        'USER': os.getenv('POSTGRES_USER'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-        'HOST': 'db',
+        'URL': os.getenv('DATABASE_URL', 'postgres://datran:12345678@db:5432/transcendence'),
+        'NAME': os.getenv('POSTGRES_DB', 'transcendence'),
+        'USER': os.getenv('POSTGRES_USER', 'datran'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', '12345678'),
+        'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
         'PORT': '5432',
     }
 }
