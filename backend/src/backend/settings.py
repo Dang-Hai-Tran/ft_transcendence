@@ -90,7 +90,7 @@ DATABASES = {
         'USER': os.getenv('POSTGRES_USER', 'datran'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', '12345678'),
         'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
-        'PORT': '5432',
+        'PORT': os.getenv('POSTGRES_PORT', '5432'),
     }
 }
 
