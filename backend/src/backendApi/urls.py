@@ -6,11 +6,11 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 urlpatterns = [
     path('token', TokenObtainPairView.as_view()),
     path('token/refresh', TokenRefreshView.as_view()),
+    path('users/signup', UserViewSet.as_view({'post': 'signUp'})),
+    path('users/signin', UserViewSet.as_view({'get': 'signIn'})),
     path('users', UserViewSet.as_view({'get': 'list', 'post': 'create'})),
     path('users/<int:pk>',
          UserViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'})),
-    path('users/<str:username>',
-         UserViewSet.as_view({'get': 'getUserByUsername'})),
     path('channels', ChannelViewSet.as_view(
         {'get': 'list', 'post': 'create'})),
     path('channels/<int:pk>',
@@ -36,7 +36,7 @@ urlpatterns = [
         {'get': 'retrieve', 'delete': 'destroy'})),
     path('otps', OtpViewSet.as_view({'get': 'list', 'post': 'create'})),
     path('otps/<int:pk>',
-         OtpViewSet.as_view({'get': 'retrieve'})),
-    path('otps/<str:username>',
-         OtpViewSet.as_view({'get': 'getOtpByUsername', 'post': 'checkOtp'})),
+         OtpViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'})),
+    path('otps/get', OtpViewSet.as_view({'get': 'getOtp'})),
+    path('otps/check', OtpViewSet.as_view({'post': 'checkOtp'})),
 ]

@@ -4,8 +4,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from datetime import timedelta
 from django.utils import timezone
-import pyotp, pyqrcode, base64
-import io
+import pyotp
 
 # Create your models here.
 
@@ -19,7 +18,7 @@ class User(AbstractUser, PermissionsMixin):
                      ("offline", "Offline")]
     status = models.CharField(
         max_length=100, choices=statusChoices, default="offline")
-    profilePicture = models.CharField(max_length=100, default="")
+    avatarPath = models.CharField(max_length=100, default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -37,7 +36,8 @@ class Game(models.Model):
     name = models.CharField(max_length=100)
     modeChoices = [("normal", "Normal"), ("tournament", "Tournament")]
     mode = models.CharField(choices=modeChoices, default="normal")
-    maxDuration = models.IntegerField()
+    statusChoices = [("in progressing", "In progressing"), ("end", "End")]
+    status = models.CharField(choices=statusChoices, default="in progressing")
     maxScore = models.IntegerField()
     users = models.ManyToManyField(User, related_name="game_users")
     winner = models.ForeignKey(
@@ -101,7 +101,6 @@ class InvitedCommand(models.Model):
     channel = models.ForeignKey(Channel, on_delete=models.CASCADE)
     invitedReason = models.TextField(default="")
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
 
 class MutedCommand(models.Model):
@@ -114,7 +113,6 @@ class MutedCommand(models.Model):
         Channel, on_delete=models.CASCADE)
     mutedReason = models.TextField(default="")
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
 
 class BannedCommand(models.Model):
@@ -127,19 +125,18 @@ class BannedCommand(models.Model):
         Channel, on_delete=models.CASCADE)
     bannedReason = models.TextField(default="")
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+
 
 class Otp(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     secretKey = models.CharField(max_length=100, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     def getOtp(self):
-        totp = pyotp.TOTP(self.secretKey, interval=90)
+        totp = pyotp.TOTP(self.secretKey, interval=120)
         otp = totp.now()
         return otp
-    
+
     def verifyOtp(self, otpVerified):
         otp = self.getOtp()
         return otp == otpVerified

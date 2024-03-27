@@ -5,6 +5,8 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
+from rest_framework.decorators import action
+from rest_framework_simplejwt.tokens import RefreshToken
 
 # Create your views here.
 
@@ -15,28 +17,47 @@ class UserViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = '__all__'
 
-    def getUserByUsername(self, request, username):
+    @action(detail=False, methods=['post'])
+    def signUp(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+
+        # Generate access and refresh tokens
+        refresh = RefreshToken.for_user(user)
+
+        return Response({
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }, status=201)
+
+    @action(detail=True, methods=['get'])
+    def signIn(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
         user = User.objects.get(username=username)
         if user is None:
             return Response({'message': 'User not found'}, status=404)
-        password = request.data.get('password')
         if not user.check_password(password):
             return Response({'message': 'Password not matched'}, status=400)
         otp = request.data.get('otp')
         instance = Otp.objects.get(user=user)
-        if not instance.getOtp() == otp:
+        if not instance.verifyOtp(otp):
             return Response({'message': 'Invalid OTP'}, status=400)
+        user.status = 'online'
         serializer = UserSerializer(user)
-        return Response(serializer.data)
+        return Response({
+            'user': serializer.data
+        }, status=200)
 
-    # def get_permissions(self):
-    #     if self.action == 'create':
-    #         self.permission_classes = [AllowAny]
-    #     elif self.action == 'list':
-    #         self.permission_classes = [IsAdminUser]
-    #     else:
-    #         self.permission_classes = [IsAuthenticated]
-    #     return super().get_permissions()
+    def get_permissions(self):
+        if self.action == 'signUp':
+            self.permission_classes = [AllowAny]
+        elif self.action == 'signIn':
+            self.permission_classes = [IsAuthenticated]
+        else:
+            self.permission_classes = [IsAdminUser]
+        return super().get_permissions()
 
 
 class ChannelViewSet(viewsets.ModelViewSet):
@@ -68,17 +89,14 @@ class BannedCommandViewSet(viewsets.ModelViewSet):
     queryset = BannedCommand.objects.all()
     serializer_class = BannedCommandSerializer
 
+
 class OtpViewSet(viewsets.ModelViewSet):
     queryset = Otp.objects.all()
     serializer_class = OtpSerializer
 
-    def retrieve(self, request, pk=None):
-        # get otp by user
-        instance = Otp.objects.get(pk=pk)
-        otp = instance.getOtp()
-        return Response({'otp': otp})
-    
-    def getOtpByUsername(self, request, username):
+    @action(detail=True, methods=['get'])
+    def getOtp(self, request):
+        username = request.data.get('username')
         user = User.objects.get(username=username)
         if user is None:
             return Response({'message': 'User not found'}, status=404)
@@ -87,13 +105,24 @@ class OtpViewSet(viewsets.ModelViewSet):
         print(f'OTP code of {username} is {otp}')
         return Response({'otp': otp}, status=200)
 
-    def checkOtp(self, request, username):
+    @action(detail=True, methods=['post'])
+    def checkOtp(self, request):
+        username = request.data.get('username')
         otp = request.data.get('otp')
         user = User.objects.get(username=username)
         if user is None:
             return Response({'message': 'User not found'}, status=404)
         instance = Otp.objects.get(user=user)
-        if instance.getOtp() == otp:
+        print(f"Otp code of {username} is {instance.getOtp()}")
+        if instance.verifyOtp(otp):
             return Response({'message': 'OTP verified successfully'}, status=200)
         else:
             return Response({'message': 'Invalid OTP'}, status=400)
+    
+    def get_permissions(self):
+        if self.action in ['getOtp', 'checkOtp']:
+            self.permission_classes = [IsAuthenticated]
+        else:
+            self.permission_classes = [IsAdminUser]
+        return super().get_permissions()
+    

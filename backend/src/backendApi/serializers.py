@@ -9,7 +9,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def create(self, validated_data):
-        user = User.objects.create_user(**validated_data)
+        user = User.objects.create(**validated_data)
         secretKey = pyotp.random_base32()
         Otp.objects.create(user=user, secretKey=secretKey)
         return user
