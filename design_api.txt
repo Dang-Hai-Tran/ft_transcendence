@@ -1,0 +1,65 @@
+1. Authentication
+    When a client signs up, the backend creates a new user record in the database and sends the client an access token and a refresh token in the response.
+    The client should save these tokens locally (e.g., in local storage) and use them for future requests that require authentication. The access token is used to authenticate the client in subsequent requests, while the refresh token can be used to obtain a new access token when the current one expires.
+    Client -> POST /api/users/signup
+        Request Body:
+        {
+            "username": "...",
+            "password": "...",
+            "email": "..."
+        }
+    Server -> Client
+        Response:
+        {
+            "access_token": "...",
+            "refresh_token": "...",
+        }
+    
+    
+    When a client signs in, the backend verifies the username, password, and one-time password (OTP). If the credentials are valid, the backend updates the client's status to 'online' and sends the successful message in the response.
+    Client -> POST /api/users/signin
+        Request Body:
+        {
+            "username": "...",
+            "password": "...",
+            "otp": "..."
+        }
+        Request Auth:
+            Bearer: access_token
+    Server -> Client
+        Response:
+        {
+            "message": f"{username} signin
+        }
+    
+    When a client logs out, the backend verifies the username. If the username is valid and user is authenticated by access token, the backends updates the client's status to 'offline' and sends the successful message in the response.
+    Client -> POST /api/users/logout
+        Request Body:
+        {
+            "username": "..."
+        }
+        Request Auth:
+            Bearer: access_token
+    Server -> Client
+        Response:
+        {
+            "message": f"{username} logout
+        }
+    
+    When a client wants to retrieve their user data from the database, the backend first verifies that the username is valid and the user is authenticated by the provided access token. If the authentication is successful, the backend sends the user's data in the response.
+    Client -> GET /api/users/me
+        Request Body:
+        {
+            "username": "..."
+        }
+        Request Auth:
+            Bearer: access_token
+    Server -> Client
+        Response:
+        {
+            ...user data...
+        }
+    
+
+2. Game:
+    When the 

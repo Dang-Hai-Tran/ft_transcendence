@@ -6,11 +6,13 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 urlpatterns = [
     path('token', TokenObtainPairView.as_view()),
     path('token/refresh', TokenRefreshView.as_view()),
-    path('users/signup', UserViewSet.as_view({'post': 'signUp'})),
-    path('users/signin', UserViewSet.as_view({'get': 'signIn'})),
     path('users', UserViewSet.as_view({'get': 'list', 'post': 'create'})),
     path('users/<int:pk>',
          UserViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'})),
+    path('users/signup', UserViewSet.as_view({'post': 'signUp'})),
+    path('users/signin', UserViewSet.as_view({'post': 'signIn'})),
+    path('users/logout', UserViewSet.as_view({'post': 'logOut'})),
+    path('users/me', UserViewSet.as_view({'get': 'getMe'})),
     path('channels', ChannelViewSet.as_view(
         {'get': 'list', 'post': 'create'})),
     path('channels/<int:pk>',

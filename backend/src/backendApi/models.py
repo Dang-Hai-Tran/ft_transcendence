@@ -23,7 +23,8 @@ class User(AbstractUser, PermissionsMixin):
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
-        self.password = make_password(self.password)
+        if not self.password.startswith('pbkdf2_sha256'):
+            self.password = make_password(self.password)
         super().save(*args, **kwargs)
 
     def __str__(self):

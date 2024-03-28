@@ -31,7 +31,7 @@ class UserViewSet(viewsets.ModelViewSet):
             'access': str(refresh.access_token),
         }, status=201)
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['post'])
     def signIn(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
@@ -45,15 +45,34 @@ class UserViewSet(viewsets.ModelViewSet):
         if not instance.verifyOtp(otp):
             return Response({'message': 'Invalid OTP'}, status=400)
         user.status = 'online'
+        user.save()
+        return Response({'message': f"{username} signin"}, status=200)
+    
+    @action(detail=True, methods=['post'])
+    def logOut(self, request):
+        username = request.data.get('username')
+        user = User.objects.get(username=username)
+        if user is None:
+            return Response({'message': 'User not found'}, status=404)
+        
+        # Update user status to 'offline'
+        user.status = 'offline'
+        user.save()
+        return Response({'message': f"{username} logout"}, status=200)
+    
+    @action(detail=False, methods=['get'])
+    def getMe(self, request):
+        username = request.data.get('username')
+        user = User.objects.get(username=username)
+        if user is None:
+            return Response({'message': 'User not found'}, status=404)
         serializer = UserSerializer(user)
-        return Response({
-            'user': serializer.data
-        }, status=200)
+        return Response(serializer.data)
 
     def get_permissions(self):
         if self.action == 'signUp':
             self.permission_classes = [AllowAny]
-        elif self.action == 'signIn':
+        elif self.action in ['signIn', 'logOut', 'getMe'] :
             self.permission_classes = [IsAuthenticated]
         else:
             self.permission_classes = [IsAdminUser]
