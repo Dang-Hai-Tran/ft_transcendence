@@ -18,7 +18,7 @@ class User(AbstractUser, PermissionsMixin):
                      ("offline", "Offline")]
     status = models.CharField(
         max_length=100, choices=statusChoices, default="offline")
-    avatarPath = models.CharField(max_length=100, default="")
+    avatarPath = models.CharField(max_length=100, default="", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

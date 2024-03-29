@@ -32,7 +32,7 @@
             "message": f"{username} signin
         }
     
-    When a client logs out, the backend verifies the username. If the username is valid and user is authenticated by access token, the backends updates the client's status to 'offline' and sends the successful message in the response.
+    When a client logs out, the backend verifies the username. If the username is valid and user is authenticated by the provided access token, the backends updates the client's status to 'offline' and sends the successful message in the response.
     Client -> POST /api/users/logout
         Request Body:
         {
@@ -58,6 +58,51 @@
         Response:
         {
             ...user data...
+        }
+    
+    When a client wants to update their user data in the database, they send a PUT request to the `/api/users/me` endpoint. The request body should include all the fields that need to be updated.
+    The backend first verifies that the provided username is valid and the user is authenticated using the access token included in the request's Authorization header.
+    If the authentication is successful, the backend updates the user's data in the database with the new values provided in the request body. After the update, the backend sends the user's updated data in the response.
+    Client -> PUT /api/users/me
+        Request Body:
+        {
+            "username": "...",
+            ...
+        }
+        Request Auth:
+            Bearer: access_token
+    Server -> Client
+        Response:
+        {
+            ...user's updated data...
+        }
+    
+    When a client wants to retrieve their access and refresh tokens, they send a POST request to the /api/token endpoint with their username and password. The backend then sends the refresh and access tokens in the response.
+    Client -> POST /api/token
+        Request Body:
+        {
+            "username": "...",
+            "password"" "..."
+        }
+    Server -> Client:
+        Response:
+        {
+            "refresh": "...",
+            "access"": "..."
+        }
+    
+    When the access token is expired and the client want to renew the access token, they send a POST request to the /api/token/refresh with their username, password and refresh token. The backend then sends the access token in the response.
+    Client -> POST /api/token/refresh
+        Request Body:
+        {
+            "username": "...",
+            "password": "...",
+            "refresh": "..."
+        }
+    Server -> Client:
+        Response:
+        {
+            "access": "..."
         }
     
 

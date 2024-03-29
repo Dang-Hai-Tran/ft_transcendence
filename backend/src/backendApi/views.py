@@ -60,7 +60,7 @@ class UserViewSet(viewsets.ModelViewSet):
         user.save()
         return Response({'message': f"{username} logout"}, status=200)
     
-    @action(detail=False, methods=['get'])
+    @action(detail=True, methods=['get'])
     def getMe(self, request):
         username = request.data.get('username')
         user = User.objects.get(username=username)
@@ -69,10 +69,24 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = UserSerializer(user)
         return Response(serializer.data)
 
+    @action(detail=True, methods=['put'])
+    def updateMe(self, request):
+        username = request.data.get('username')
+        user = User.objects.get(username=username)
+        if user is None:
+            return Response({'message': 'User not found'}, status=404)
+        # Update user data
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=200)
+        else:
+            return Response(serializer.errors, status=400)
+
     def get_permissions(self):
         if self.action == 'signUp':
             self.permission_classes = [AllowAny]
-        elif self.action in ['signIn', 'logOut', 'getMe'] :
+        elif self.action in ['signIn', 'logOut', 'getMe', 'updateMe'] :
             self.permission_classes = [IsAuthenticated]
         else:
             self.permission_classes = [IsAdminUser]

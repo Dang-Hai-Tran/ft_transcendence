@@ -12,7 +12,7 @@ urlpatterns = [
     path('users/signup', UserViewSet.as_view({'post': 'signUp'})),
     path('users/signin', UserViewSet.as_view({'post': 'signIn'})),
     path('users/logout', UserViewSet.as_view({'post': 'logOut'})),
-    path('users/me', UserViewSet.as_view({'get': 'getMe'})),
+    path('users/me', UserViewSet.as_view({'get': 'getMe', 'put': 'updateMe'})),
     path('channels', ChannelViewSet.as_view(
         {'get': 'list', 'post': 'create'})),
     path('channels/<int:pk>',
