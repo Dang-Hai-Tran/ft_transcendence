@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-ga)!l78e2#bsa6($zugz+1x8*xiydm!3%(5=mg+t+vi9lvkx9z
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
 # Application definition
@@ -158,7 +158,9 @@ SIMPLE_JWT = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    f"{os.getenv('FRONTEND_URL')}:{os.getenv('FRONTEND_PORT')}"
+    f"{os.getenv('FRONTEND_URL')}:{os.getenv('FRONTEND_PORT')}",
+    "http://localhost:80",
+    "http://127.0.0.1:5500",
 ]
 
 CORS_ALLOW_METHODS = [
