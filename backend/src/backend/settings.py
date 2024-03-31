@@ -15,7 +15,6 @@ import os
 from datetime import timedelta
 
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -45,6 +44,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'django_filters',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -55,6 +55,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -89,7 +90,7 @@ DATABASES = {
         'NAME': os.getenv('POSTGRES_DB', 'transcendence'),
         'USER': os.getenv('POSTGRES_USER', 'datran'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', '12345678'),
-        'HOST': 'localhost',#os.getenv('POSTGRES_HOST', 'localhost'),
+        'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
         'PORT': os.getenv('POSTGRES_PORT', '5432'),
     }
 }
@@ -155,3 +156,27 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=2),
 }
+
+CORS_ALLOWED_ORIGINS = [
+    f"{os.getenv('FRONTEND_URL')}:{os.getenv('FRONTEND_PORT')}"
+]
+
+CORS_ALLOW_METHODS = [
+    'GET',
+    'POST',
+    'PUT',
+    'PATCH',
+    'DELETE',
+    'OPTIONS',
+]
+
+CORS_ALLOW_HEADERS = [
+    'content-type',
+    'authorization',
+    'x-csrftoken',
+]
+
+CORS_EXPOSE_HEADERS = [
+    'content-type',
+    'authorization',
+]

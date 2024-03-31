@@ -11,6 +11,7 @@ psycopg2 = "*"
 django-environs = "*"
 django-filter = "*"
 pyotp = "*"
+django-cors-headers = "*"
 
 [dev-packages]
 
