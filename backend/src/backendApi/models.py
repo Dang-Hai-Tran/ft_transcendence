@@ -5,6 +5,8 @@ from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from datetime import timedelta
 from django.utils import timezone
 import pyotp
+import time
+import hashlib
 
 # Create your models here.
 
@@ -134,10 +136,10 @@ class Otp(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def getOtp(self):
-        totp = pyotp.TOTP(self.secretKey, interval=120)
+        totp = pyotp.TOTP(self.secretKey)
         otp = totp.now()
         return otp
 
     def verifyOtp(self, otpVerified):
-        otp = self.getOtp()
-        return otp == otpVerified
+        totp = pyotp.TOTP(self.secretKey)
+        return totp.verify(otpVerified, valid_window=60)

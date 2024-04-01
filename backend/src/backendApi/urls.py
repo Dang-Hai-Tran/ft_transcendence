@@ -12,7 +12,7 @@ urlpatterns = [
     path('users/signup', UserViewSet.as_view({'post': 'signUp'})),
     path('users/signin', UserViewSet.as_view({'post': 'signIn'})),
     path('users/logout', UserViewSet.as_view({'post': 'logOut'})),
-    path('users/me', UserViewSet.as_view({'get': 'getMe', 'put': 'updateMe'})),
+    path('users/me', UserViewSet.as_view({'post': 'getMe', 'put': 'updateMe'})),
     path('channels', ChannelViewSet.as_view(
         {'get': 'list', 'post': 'create'})),
     path('channels/<int:pk>',
@@ -39,6 +39,7 @@ urlpatterns = [
     path('otps', OtpViewSet.as_view({'get': 'list', 'post': 'create'})),
     path('otps/<int:pk>',
          OtpViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'})),
-    path('otps/get', OtpViewSet.as_view({'get': 'getOtp'})),
+    path('otps/get', OtpViewSet.as_view({'post': 'getOtp'})),
     path('otps/check', OtpViewSet.as_view({'post': 'checkOtp'})),
+    path('otps/qr-code', OtpViewSet.as_view({'post': 'getQRcode'}))
 ]

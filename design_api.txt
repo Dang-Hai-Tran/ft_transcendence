@@ -47,7 +47,7 @@
         }
     
     When a client wants to retrieve their user data from the database, the backend first verifies that the username is valid and the user is authenticated by the provided access token. If the authentication is successful, the backend sends the user's data in the response.
-    Client -> GET /api/users/me
+    Client -> POST /api/users/me
         Request Body:
         {
             "username": "..."
@@ -108,7 +108,7 @@
     When a client wants to retrieve their OTP code, they send a GET request to the `/api/otps/get` endpoint with their username. The request must include the client's access token in the Authorization header.
     The backend first verifies that the provided username is valid and the user is authenticated using the access token. If the authentication is successful, the backend sends the user's OTP code in the response.
 
-    Client -> GET /api/otps/get
+    Client -> POST /api/otps/get
         Request Body:
         {
             "username": "..."
@@ -135,7 +135,16 @@
             "message": "..."
         }
     
-    
+    When a client wants to generate their QR code to using in Authorizator app, they send a POST request to the `/api/otps/qr-code` endpoint with their username. The request must include the client's access token in the Authorization header. The backend first verifies that the user is valid, the user is authenticated using the access token. If the authentication is successful, the backend sends the QR code image in PNG format in the response.
+    Client -> POST /api/opts/qr-code
+        Request Body:
+        {
+            "username": "..."
+        }
+        Bearer token: access_token
+    Server -> Client:
+        Response:
+            QR code image
 
 2. Game:
     When the 

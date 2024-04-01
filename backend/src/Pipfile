@@ -12,6 +12,7 @@ django-environs = "*"
 django-filter = "*"
 pyotp = "*"
 django-cors-headers = "*"
+qrcode = "*"
 
 [dev-packages]
 

@@ -7,6 +7,9 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework_simplejwt.tokens import RefreshToken
+import qrcode
+from django.http import HttpResponse
+from io import BytesIO
 
 # Create your views here.
 
@@ -152,8 +155,38 @@ class OtpViewSet(viewsets.ModelViewSet):
         else:
             return Response({'message': 'Invalid OTP'}, status=400)
     
+    @action(detail=False, methods=['get'])
+    def getQRcode(self, request):
+        username = request.data.get('username')
+        user = User.objects.get(username=username)
+        if user is None:
+            return Response({'message': 'User not found'}, status=404)
+
+        # Generate the OTP QR code
+        otp_instance = Otp.objects.get(user=user)
+        otp_secret = otp_instance.secretKey
+        otp_uri = f'otpauth://totp/Transcendence:{username}?secret={otp_secret}&issuer=Transcendence'
+
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(otp_uri)
+        qr.make(fit=True)
+
+        # Save the QR code image to a temporary file
+        img = qr.make_image(fill_color="black", back_color="white")
+        img_io = BytesIO()
+        img.save(img_io, 'PNG')
+        img_io.seek(0)
+
+        # Return the QR code image as a response
+        return HttpResponse(img_io, content_type='image/png')
+
     def get_permissions(self):
-        if self.action in ['getOtp', 'checkOtp']:
+        if self.action in ['getOtp', 'checkOtp', 'getQRcode']:
             self.permission_classes = [IsAuthenticated]
         else:
             self.permission_classes = [IsAdminUser]
