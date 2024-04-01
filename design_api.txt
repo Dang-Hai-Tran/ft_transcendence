@@ -91,7 +91,7 @@
             "access"": "..."
         }
     
-    When the access token is expired and the client want to renew the access token, they send a POST request to the /api/token/refresh with their username, password and refresh token. The backend then sends the access token in the response.
+    When the access token is expired and the client want to renew the access token, they send a POST request to the endpoint /api/token/refresh with their username, password and refresh token. The backend then sends the access token in the response.
     Client -> POST /api/token/refresh
         Request Body:
         {
@@ -104,6 +104,37 @@
         {
             "access": "..."
         }
+
+    When a client wants to retrieve their OTP code, they send a GET request to the `/api/otps/get` endpoint with their username. The request must include the client's access token in the Authorization header.
+    The backend first verifies that the provided username is valid and the user is authenticated using the access token. If the authentication is successful, the backend sends the user's OTP code in the response.
+
+    Client -> GET /api/otps/get
+        Request Body:
+        {
+            "username": "..."
+        }
+        Bearer token: access_token
+    Server -> Client:
+        Response:
+        {
+            "opt": "..."
+        }
+    
+    When a client wants to verify their OTP code, they send a POST request to the `/api/otps/check` endpoint with their username and otp. The request must include the client's access token in the Authorization header.
+    The backend first verifies that the provided username is valid, the user is authenticated using the access token and the opt provided is correct. If all checks is passed, the backend sends the successful message in the response.
+    Client -> POST /api/otps/check
+        Request Body:
+        {
+            "username": "...",
+            "otp": "..."
+        }
+        Bearer token: access_token
+    Server -> Client:
+        Response:
+        {
+            "message": "..."
+        }
+    
     
 
 2. Game:

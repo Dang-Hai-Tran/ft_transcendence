@@ -91,7 +91,7 @@ DATABASES = {
         'USER': os.getenv('POSTGRES_USER', 'datran'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', '12345678'),
         'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
-        'PORT': os.getenv('POSTGRES_PORT', '5432'),
+        'PORT': os.getenv('POSTGRES_PORT', '5433'),
     }
 }
 
@@ -159,7 +159,6 @@ SIMPLE_JWT = {
 
 CORS_ALLOWED_ORIGINS = [
     f"{os.getenv('FRONTEND_URL')}:{os.getenv('FRONTEND_PORT')}",
-    "http://localhost:80",
     "http://127.0.0.1:5500",
 ]
 
