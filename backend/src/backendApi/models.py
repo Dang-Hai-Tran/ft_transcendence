@@ -2,13 +2,7 @@ from collections.abc import Iterable
 from django.db import models
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
-from datetime import timedelta
-from django.utils import timezone
 import pyotp
-import time
-import hashlib
-
-# Create your models here.
 
 
 class User(AbstractUser, PermissionsMixin):
@@ -33,10 +27,70 @@ class User(AbstractUser, PermissionsMixin):
         return f"{self.id} : {self.username}"
 
 
+class Channel(models.Model):
+    name = models.CharField(max_length=100, blank=False, null=False, unique=True)
+    visibilityChoices = [("public", "Public"),
+                         ("private", "Private"), ("protected", "Protected")]
+    visibility = models.CharField(choices=visibilityChoices, default="public")
+    password = models.CharField(max_length=100, null=True)
+    owner = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="channel_owner",
+    )
+    members = models.ManyToManyField(User, related_name="channel_members")
+    admins = models.ManyToManyField(User, related_name="channel_admins")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if self.password and not self.password.startswith('pbkdf2_sha256'):
+            self.password = make_password(self.password)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.id} : {self.name}"
+
+
+class ChannelBannedUser(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="channel_banned_user")
+    channel = models.ForeignKey(
+        Channel, on_delete=models.CASCADE, related_name="channel_banned")
+    until = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.channel.name} : {self.user.username}"
+
+
+class ChannelMutedUser(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="channel_muted_user")
+    channel = models.ForeignKey(
+        Channel, on_delete=models.CASCADE, related_name="channel_muted")
+    until = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.channel.name} : {self.user.username}"
+
+
+class ChannelInvitedUser(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="channel_invited_user")
+    channel = models.ForeignKey(
+        Channel, on_delete=models.CASCADE, related_name="channel_invited")
+    statusChoices = [("pending", "Pending"), ("accepted",
+                                              "Accepted"), ("rejected", "Rejected")]
+    status = models.CharField(choices=statusChoices, default="pending")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.channel.name} : {self.user.username}"
+
+
 class Game(models.Model):
     visibilityChoices = [("public", "Public"), ("private", "Private")]
     visibility = models.CharField(choices=visibilityChoices, default="public")
-    name = models.CharField(max_length=100)
     modeChoices = [("normal", "Normal"), ("tournament", "Tournament")]
     mode = models.CharField(choices=modeChoices, default="normal")
     statusChoices = [("in progressing", "In progressing"), ("end", "End")]
@@ -45,94 +99,95 @@ class Game(models.Model):
     users = models.ManyToManyField(User, related_name="game_users")
     winner = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="game_winner")
-    winnerScore = models.IntegerField()
+    winnerScore = models.IntegerField(null=True, blank=True)
     loser = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="game_loser")
-    loserScore = models.IntegerField()
+    loserScore = models.IntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.id} : {self.name}"
+        return f"{self.id} : {self.mode} - {self.visibility} - {self.status}"
 
 
-class Channel(models.Model):
-    visibilityChoices = [("public", "Public"), ("private", "Private")]
-    visibility = models.CharField(choices=visibilityChoices, default="public")
-    name = models.CharField(max_length=100, default="")
-    password = models.CharField(max_length=100, null=True)
-    description = models.TextField(default="")
-    users = models.ManyToManyField(User, related_name="channel_users")
-    createdBy = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="channel_creator")
-    admins = models.ManyToManyField(User, related_name="channel_admins")
-    banneds = models.ManyToManyField(User, related_name="channel_banneds")
-    muteds = models.ManyToManyField(User, related_name="channel_muteds")
-    inviteds = models.ManyToManyField(User, related_name="channel_invited")
+class GameScore(models.Model):
+    game = models.ForeignKey(
+        Game, on_delete=models.CASCADE, related_name="game_scores")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="user_scores")
+    score = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def save(self, *args, **kwargs):
-        self.password = make_password(self.password)
-        super().save(*args, **kwargs)
-
     def __str__(self):
-        return f"{self.id} : {self.name}"
+        return f"{self.game.id} - {self.user.username}: {self.score}"
 
 
-class Message(models.Model):
+class UserMessage(models.Model):
     sender = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="message_sender")
+        User, on_delete=models.CASCADE, related_name="user_message_sender")
     receiver = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="message_receiver", null=True, default=None)
+        User, on_delete=models.CASCADE, related_name="user_message_receiver")
     content = models.TextField(default="")
-    channel = models.ForeignKey(
-        Channel, on_delete=models.CASCADE, null=True, default=None)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
 
-class InvitedCommand(models.Model):
+class ChannelMessage(models.Model):
     sender = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="invited_sender")
+        User, on_delete=models.CASCADE, related_name="channel_message_sender")
     receiver = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="invited_receiver")
+        Channel, on_delete=models.CASCADE, related_name="channel_message_receiver")
+    content = models.TextField(default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class Friendship(models.Model):
+    sender = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="friendship_sender")
+    receiver = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="friendship_receiver")
     statusChoices = [("pending", "Pending"), ("accepted",
-                                              "Accepted"), ("declined", "Declined")]
+                                              "Accepted"), ("rejected", "Rejected")]
     status = models.CharField(
         max_length=100, choices=statusChoices, default="pending")
-    channel = models.ForeignKey(Channel, on_delete=models.CASCADE)
-    invitedReason = models.TextField(default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['sender', 'receiver'], name='unique_friendship'),
+        ]
+
+    def __str__(self):
+        return f"{self.sender} : {self.receiver}"
+
+
+class MutedUser(models.Model):
+    sender = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="muted_user_sender")
+    receiver = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="muted_user_receiver")
+    until = models.DateField()
+    mutedReason = models.TextField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
 
 
-class MutedCommand(models.Model):
+class BannedUser(models.Model):
     sender = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="muted_sender")
+        User, on_delete=models.CASCADE, related_name="banned_user_sender")
     receiver = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="muted_receiver")
-    until = models.DateTimeField(default=timezone.now() + timedelta(days=1))
-    channel = models.ForeignKey(
-        Channel, on_delete=models.CASCADE)
-    mutedReason = models.TextField(default="")
-    created_at = models.DateTimeField(auto_now_add=True)
-
-
-class BannedCommand(models.Model):
-    sender = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="banned_sender")
-    receiver = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="banned_receiver")
-    until = models.DateTimeField()
-    channel = models.ForeignKey(
-        Channel, on_delete=models.CASCADE)
-    bannedReason = models.TextField(default="")
+        User, on_delete=models.CASCADE, related_name="banned_user_receiver")
+    until = models.DateField()
+    bannedReason = models.TextField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
 
 
 class Otp(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     secretKey = models.CharField(max_length=100, unique=True)
+    otpStatus = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def getOtp(self):

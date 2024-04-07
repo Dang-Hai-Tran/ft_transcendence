@@ -89,9 +89,9 @@ DATABASES = {
         'URL': os.getenv('DATABASE_URL', 'postgres://datran:12345678@db:5432/transcendence'),
         'NAME': os.getenv('POSTGRES_DB', 'transcendence'),
         'USER': os.getenv('POSTGRES_USER', 'datran'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', '12345678'),
-        'HOST': 'localhost',#os.getenv('POSTGRES_HOST', 'localhost'),
-        'PORT': os.getenv('POSTGRES_PORT', '5433'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'transcendence'),
+        'HOST': 'localhost', #os.getenv('POSTGRES_HOST', 'localhost'),
+        'PORT': os.getenv('POSTGRES_PORT', '5432'),
     }
 }
 
@@ -141,9 +141,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Config use rest_framework
 REST_FRAMEWORK = {
-    # 'DEFAULT_PERMISSION_CLASSES': [
-    #     'rest_framework.permissions.IsAuthenticated',
-    # ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
