@@ -45,7 +45,10 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'django_filters',
     'corsheaders',
+    'channels',
 ]
+
+ASGI_APPLICATION = 'backend.asgi.application'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -159,6 +162,9 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5500",
 ]
 
+CORS_ALLOW_WEBSOCKETS = True
+CORS_URLS_REGEX = r'^/(ws/.*|api/.*|admin/.*|static/.*|media/.*)$'
+
 CORS_ALLOW_METHODS = [
     'GET',
     'POST',
@@ -172,6 +178,8 @@ CORS_ALLOW_HEADERS = [
     'content-type',
     'authorization',
     'x-csrftoken',
+    'accept',
+    'user-agent',
 ]
 
 CORS_EXPOSE_HEADERS = [
