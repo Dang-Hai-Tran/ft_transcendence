@@ -5,7 +5,6 @@ from .views.user import UserViewSet
 from .views.channel import ChannelViewSet
 from .views.user_message import UserMessageViewSet
 from .views.otp import OtpViewSet
-from .consumers.userchat import UserChatConsumer
 
 urlpatterns = [
     # Tokens

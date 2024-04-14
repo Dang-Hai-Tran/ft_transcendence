@@ -13,7 +13,6 @@ django-filter = "*"
 pyotp = "*"
 django-cors-headers = "*"
 qrcode = "*"
-channels = "*"
 
 [dev-packages]
 
