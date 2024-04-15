@@ -65,15 +65,36 @@ urlpatterns = [
     path(
         "channels/<int:pk>",
         ChannelViewSet.as_view(
-            {"get": "retrieve", "put": "update", "delete": "destroy"}
+            {"get": "retrieve", "put": "update", "patch": "partial_update", "delete": "destroy"}
         ),
     ),
     path(
-        "channels/me",
-        ChannelViewSet.as_view({"post": "generateChannel", "get": "listChannels"}),
+        "channel/create",
+        ChannelViewSet.as_view({"post": "generateMyChannel"}),
+    ),
+    path("channel/list", ChannelViewSet.as_view({"get": "listMyChannels"})),
+    path(
+        "channel/<int:pk>/update",
+        ChannelViewSet.as_view({"put": "updateMyChannel"}),
+    ),
+    path("channel/<int:pk>/get", ChannelViewSet.as_view({"get": "getMyChannel"})),
+    path(
+        "channel/<int:pk>/admin/add",
+        ChannelViewSet.as_view({"post": "addAdminChannel"}),
     ),
     path(
-        "channels/me/<int:pk>",
-        ChannelViewSet.as_view({"put": "updateChannel"}),
+        "channel/<int:pk>/admin/remove",
+        ChannelViewSet.as_view({"post": "removeAdminChannel"}),
+    ),
+    path(
+        "channel/<int:pk>/member/join", ChannelViewSet.as_view({"post": "joinChannel"})
+    ),
+    path(
+        "channel/<int:pk>/member/leave",
+        ChannelViewSet.as_view({"post": "leaveChannel"}),
+    ),
+    path("channel/<int:pk>/member/ban", ChannelViewSet.as_view({"post": "banMember"})),
+    path(
+        "channel/<int:pk>/member/unban", ChannelViewSet.as_view({"post": "unbanMember"})
     ),
 ]

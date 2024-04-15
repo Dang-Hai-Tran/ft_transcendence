@@ -2,6 +2,7 @@ from collections.abc import Iterable
 from django.db import models
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
+from backendApi.hash import hash_password, verify_password
 import pyotp
 
 
@@ -10,17 +11,15 @@ class User(AbstractUser, PermissionsMixin):
     email = models.EmailField(max_length=100, unique=True)
     password = models.CharField(max_length=100)
     level = models.IntegerField(default=1)
-    statusChoices = [("online", "Online"),
-                     ("offline", "Offline")]
-    status = models.CharField(
-        max_length=100, choices=statusChoices, default="offline")
+    statusChoices = [("online", "Online"), ("offline", "Offline")]
+    status = models.CharField(max_length=100, choices=statusChoices, default="offline")
     avatarPath = models.CharField(max_length=100, default="", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
-        if not self.password.startswith('pbkdf2_sha256'):
-            self.password = make_password(self.password)
+        if not self.password.startswith("pbkdf2_sha256"):
+            self.password = hash_password(self.password)
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -29,12 +28,13 @@ class User(AbstractUser, PermissionsMixin):
 
 class Channel(models.Model):
     name = models.CharField(max_length=100, blank=False, null=False, unique=True)
-    visibilityChoices = [("public", "Public"),
-                         ("private", "Private"), ("protected", "Protected")]
+    visibilityChoices = [("public", "Public"), ("private", "Private")]
     visibility = models.CharField(choices=visibilityChoices, default="public")
     password = models.CharField(max_length=100, null=True)
     owner = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="channel_owner",
+        User,
+        on_delete=models.CASCADE,
+        related_name="channel_owner",
     )
     members = models.ManyToManyField(User, related_name="channel_members")
     admins = models.ManyToManyField(User, related_name="channel_admins")
@@ -42,8 +42,8 @@ class Channel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
-        if self.password and not self.password.startswith('pbkdf2_sha256'):
-            self.password = make_password(self.password)
+        if self.password and not self.password.startswith("pbkdf2_sha256"):
+            self.password = hash_password(self.password)
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -52,9 +52,11 @@ class Channel(models.Model):
 
 class ChannelBannedUser(models.Model):
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="channel_banned_user")
+        User, on_delete=models.CASCADE, related_name="channelbanneduser_user"
+    )
     channel = models.ForeignKey(
-        Channel, on_delete=models.CASCADE, related_name="channel_banned")
+        Channel, on_delete=models.CASCADE, related_name="channelbanneduser_channel"
+    )
     until = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -64,9 +66,11 @@ class ChannelBannedUser(models.Model):
 
 class ChannelMutedUser(models.Model):
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="channel_muted_user")
+        User, on_delete=models.CASCADE, related_name="channelmuteduser_user"
+    )
     channel = models.ForeignKey(
-        Channel, on_delete=models.CASCADE, related_name="channel_muted")
+        Channel, on_delete=models.CASCADE, related_name="channelmuteduser_channel"
+    )
     until = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -76,11 +80,16 @@ class ChannelMutedUser(models.Model):
 
 class ChannelInvitedUser(models.Model):
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="channel_invited_user")
+        User, on_delete=models.CASCADE, related_name="channelinviteduser_user"
+    )
     channel = models.ForeignKey(
-        Channel, on_delete=models.CASCADE, related_name="channel_invited")
-    statusChoices = [("pending", "Pending"), ("accepted",
-                                              "Accepted"), ("rejected", "Rejected")]
+        Channel, on_delete=models.CASCADE, related_name="channelinviteduser_channel"
+    )
+    statusChoices = [
+        ("pending", "Pending"),
+        ("accepted", "Accepted"),
+        ("rejected", "Rejected"),
+    ]
     status = models.CharField(choices=statusChoices, default="pending")
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -98,10 +107,10 @@ class Game(models.Model):
     maxScore = models.IntegerField()
     users = models.ManyToManyField(User, related_name="game_users")
     winner = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="game_winner")
+        User, on_delete=models.CASCADE, related_name="game_winner"
+    )
     winnerScore = models.IntegerField(null=True, blank=True)
-    loser = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="game_loser")
+    loser = models.ForeignKey(User, on_delete=models.CASCADE, related_name="game_loser")
     loserScore = models.IntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -111,10 +120,8 @@ class Game(models.Model):
 
 
 class GameScore(models.Model):
-    game = models.ForeignKey(
-        Game, on_delete=models.CASCADE, related_name="game_scores")
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="user_scores")
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name="gamescore_game")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="gamescore_user")
     score = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -125,9 +132,11 @@ class GameScore(models.Model):
 
 class UserMessage(models.Model):
     sender = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="user_message_sender")
+        User, on_delete=models.CASCADE, related_name="usermessage_sender"
+    )
     receiver = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="user_message_receiver")
+        User, on_delete=models.CASCADE, related_name="usermessage_receiver"
+    )
     content = models.TextField(default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -135,9 +144,11 @@ class UserMessage(models.Model):
 
 class ChannelMessage(models.Model):
     sender = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="channel_message_sender")
+        User, on_delete=models.CASCADE, related_name="channelmessage_sender"
+    )
     receiver = models.ForeignKey(
-        Channel, on_delete=models.CASCADE, related_name="channel_message_receiver")
+        Channel, on_delete=models.CASCADE, related_name="channelmessage_receiver"
+    )
     content = models.TextField(default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -145,19 +156,24 @@ class ChannelMessage(models.Model):
 
 class Friendship(models.Model):
     sender = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="friendship_sender")
+        User, on_delete=models.CASCADE, related_name="friendship_sender"
+    )
     receiver = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="friendship_receiver")
-    statusChoices = [("pending", "Pending"), ("accepted",
-                                              "Accepted"), ("rejected", "Rejected")]
-    status = models.CharField(
-        max_length=100, choices=statusChoices, default="pending")
+        User, on_delete=models.CASCADE, related_name="friendship_receiver"
+    )
+    statusChoices = [
+        ("pending", "Pending"),
+        ("accepted", "Accepted"),
+        ("rejected", "Rejected"),
+    ]
+    status = models.CharField(max_length=100, choices=statusChoices, default="pending")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['sender', 'receiver'], name='unique_friendship'),
+                fields=["sender", "receiver"], name="unique_friendship"
+            ),
         ]
 
     def __str__(self):
@@ -166,9 +182,11 @@ class Friendship(models.Model):
 
 class MutedUser(models.Model):
     sender = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="muted_user_sender")
+        User, on_delete=models.CASCADE, related_name="muteduser_sender"
+    )
     receiver = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="muted_user_receiver")
+        User, on_delete=models.CASCADE, related_name="muteduser_receiver"
+    )
     until = models.DateField()
     mutedReason = models.TextField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -176,9 +194,11 @@ class MutedUser(models.Model):
 
 class BannedUser(models.Model):
     sender = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="banned_user_sender")
+        User, on_delete=models.CASCADE, related_name="banneduser_sender"
+    )
     receiver = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="banned_user_receiver")
+        User, on_delete=models.CASCADE, related_name="banneduser_receiver"
+    )
     until = models.DateField()
     bannedReason = models.TextField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
