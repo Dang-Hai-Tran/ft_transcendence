@@ -1,6 +1,5 @@
 from collections.abc import Iterable
 from django.db import models
-from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from backendApi.hash import hash_password, verify_password
 import pyotp

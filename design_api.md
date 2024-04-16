@@ -130,7 +130,7 @@ POST /api/v1/auth/register
 
 ```typescript
 {
-	message: string
+    message: string;
 }
 ```
 
@@ -150,7 +150,7 @@ authorization Bearer <token>
 
 ```typescript
 {
-	otpStatus: boolean
+    otpStatus: boolean;
 }
 ```
 
@@ -167,7 +167,7 @@ authorization Bearer <token>
 
 ```typescript
 {
-	otpStatus: boolean
+    otpStatus: boolean;
 }
 ```
 
@@ -184,7 +184,7 @@ authorization Bearer <token>
 
 ```typescript
 {
-	otp: string
+    otp: string;
 }
 ```
 
@@ -205,7 +205,7 @@ authorization Bearer <token>
 
 ```typescript
 {
-	message: string
+    message: string;
 }
 ```
 
@@ -276,7 +276,7 @@ avatar: File
 
 ```typescript
 {
-	message: string
+    message: string;
 }
 ```
 
@@ -305,7 +305,7 @@ authorization Bearer <token>
 
 ```typescript
 {
-	message: string
+    message: string;
 }
 ```
 
@@ -375,7 +375,7 @@ authorization Bearer <token>
 
 ```typescript
 {
-	message: string
+    message: string;
 }
 ```
 
@@ -395,10 +395,9 @@ authorization Bearer <token>
 
 ```typescript
 {
-	message: string
+    message: string;
 }
 ```
-
 
 ## Join a channel
 
@@ -426,139 +425,113 @@ authorization Bearer <token>
 
 -   The leaved channel object ([Channel](#channel))
 
+## Ban user in channel by admin
 
-## Ban user from channel by admin
-
-
-
-To unban a user, simply ban the user again with a past date.
-
-#### Input
+You must be an admin to ban a user from a channel. If this user is actually a member of the channel, he will be removed from the list of members. You can't ban an admin or owner of the channel.
 
 ```typescript
-message: `channels_banUser`
-payload: {
-	id: number, // the channel id
-	user_id: number,
-	until: string, // ISO date of de-ban
+POST /api/v1/channel/<channel_id>/member/ban
+authorization Bearer <token>
+{
+	"username": string
+	"until": string // ISO date format YYYY-MM-DD // optional
 }
 ```
 
-#### Return
+### Return
 
--   A ChannelBannedUser object ([ChannelBannedUser](#channelbanneduser))
--   A [WSResponse](#wsresponse)
-    -   ```typescript
-        {
-        	statusCode: 400,
-        	error: 'Bad request',
-        	messages: string[] // describing malformed payload
-        }
-        ```
-    -   ```typescript
-        {
-        	statusCode: 403,
-        	error: 'Forbidden',
-        	messages: ['Only channel admins can ban users'],
-        }
-        ```
-    -   ```typescript
-        {
-        	statusCode: 404,
-        	error: 'Not found',
-        	messages: ['Channel not found']
-        			| ['User not found']
-        }
-        ```
+-   The banned user object ([ChannelBannedUser](#channelbanneduser))
 
-### **Mute user from channel**
+## Unban user in channel by admin
 
-To unmute a user, simply mute the user again with a past date.
-
-#### Input
+You must be an admin to unban a user from a channel. If the user isn't in banned list, error will be raised. The record will be removed from ChannelBannedUser table.
 
 ```typescript
-message: `channels_muteUser`
-payload: {
-	id: number, // the channel id
-	user_id: number,
-	until: string, // ISO date of de-ban
+POST /api/v1/channel/<channel_id>/member/unban
+authorization Bearer <token>
+{
+	"username": string
 }
 ```
 
-#### Return
-
--   A ChannelMutedUser object ([ChannelMutedUser](#channelmuteduser))
--   A [WSResponse](#wsresponse)
-    -   ```typescript
-        {
-        	statusCode: 400,
-        	error: 'Bad request',
-        	messages: string[] // describing malformed payload
-        }
-        ```
-    -   ```typescript
-        {
-        	statusCode: 403,
-        	error: 'Forbidden',
-        	messages: ['Only channel admins can mute users'],
-        }
-        ```
-    -   ```typescript
-        {
-        	statusCode: 404,
-        	error: 'Not found',
-        	messages: ['Channel not found']
-        			| ['User not found']
-        }
-        ```
-
-### **Invite user in channel**
-
-#### Input
+### Return
 
 ```typescript
-message: `channels_inviteUser`
-payload: {
-	id: number, // the channel id
-	user_id: number,
+{
+    message: string;
 }
 ```
 
-#### Return
+## Mute user in channel by admin
 
--   A ChannelInvitedUser object ([ChannelInvitedUser](#channelinviteduser))
--   A [WSResponse](#wsresponse)
-    -   ```typescript
-        {
-        	statusCode: 400,
-        	error: 'Bad request',
-        	messages: string[] // describing malformed payload
-        }
-        ```
-    -   ```typescript
-        {
-        	statusCode: 403,
-        	error: 'Forbidden',
-        	messages: ['Only channel admins can invite users'],
-        }
-        ```
-    -   ```typescript
-        {
-        	statusCode: 404,
-        	error: 'Not found',
-        	messages: ['Channel not found']
-        			| ['User not found']
-        }
-        ```
-    -   ```typescript
-        {
-        	statusCode: 409,
-        	error: 'Conflict',
-        	messages: ["You can't invite yourself"]
-        			| ['There is already a pending invitation']
-        }
-        ```
+You must be an admin to mute a user from a channel. Owner and admin can't be muted.
+
+```typescript
+POST /api/v1/channel/<channel_id>/member/mute
+authorization Bearer <token>
+{
+	"username": string
+	"until": string // ISO date format YYYY-MM-DD // optional
+}
+```
+
+### Return
+
+-   The muted user object ([ChannelMutedUser](#channelmuteduser))
+
+## Unmute user in channel by admin
+
+You must be an admin to unmute a user from a channel. If the user isn't muted, error will be raised. The record will be removed from ChannelMutedUser table.
+
+```typescript
+POST /api/v1/channel/<channel_id>/member/unmute
+authorization Bearer <token>
+{
+	"username": string
+}
+```
+
+### Return
+
+```typescript
+{
+    message: string;
+}
+```
+
+## Invite user in channel by admin
+
+Only channel's admin can invite users in the channel.
+
+```typescript
+POST /api/v1/channel/<channel_id>/member/invite
+authorization Bearer <token>
+{
+	"username": string
+}
+```
+
+### Return
+
+-   The invited user object ([ChannelInvitedUser](#channelinviteduser))
+
+## Update status of user's invitation
+
+Only channel's admin can update status of user's invitation.
+
+```typescript
+PUT /api/v1/channel/<channel_id>/member/invite
+authorization Bearer <token>
+{
+	"username": string,
+	"status": string // 'accepted' | 'pending' | 'rejected'
+}
+```
+
+### Return
+
+-   The updated invited user object ([ChannelInvitedUser](#channelinviteduser))
+
 
 ### **Send message into channel**
 

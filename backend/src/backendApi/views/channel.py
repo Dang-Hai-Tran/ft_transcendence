@@ -5,10 +5,21 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from backendApi.hash import verify_password
+from datetime import datetime, timezone
+from django.utils.dateparse import parse_date
 
 
-from backendApi.models import Channel, ChannelInvitedUser, ChannelBannedUser, User
+from backendApi.models import (
+    Channel,
+    ChannelInvitedUser,
+    ChannelBannedUser,
+    ChannelMutedUser,
+    User,
+)
 from backendApi.serializers.channel import ChannelSerializer
+from backendApi.serializers.channel_banned_user import ChannelBannedUserSerializer
+from backendApi.serializers.channel_muted_user import ChannelMutedUserSerializer
+from backendApi.serializers.channel_invited_user import ChannelInvitedUserSerializer
 from backendApi.permissions import IsChannelAdmin, IsChannelMember, IsChannelInvitedUser
 
 
@@ -20,7 +31,7 @@ class ChannelViewSet(viewsets.ModelViewSet):
 
     # Create channel view. Each user can create a channel.
     @action(detail=False, methods=["post"])
-    def generateMyChannel(self, request):
+    def createChannel(self, request):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             channel = serializer.save()
@@ -53,7 +64,9 @@ class ChannelViewSet(viewsets.ModelViewSet):
             return Response({"error": "Channel not found"}, status=404)
         user = request.user
         if not channel.owner == user:
-            return Response({"error": "You are not the owner of this channel"}, status=403)
+            return Response(
+                {"error": "You are not the owner of this channel"}, status=403
+            )
         serializer = self.get_serializer(channel, data=request.data, partial=True)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
@@ -83,18 +96,20 @@ class ChannelViewSet(viewsets.ModelViewSet):
                 status=403,
             )
         serializer = self.get_serializer(channel)
-        return Response(serializer.data)
+        return Response(serializer.data, status=200)
 
     # Owner add channel's admin by username
     @action(detail=True, methods=["post"])
-    def addAdminChannel(self, request, pk):
+    def addAdmin(self, request, pk):
         try:
             channel = Channel.objects.get(id=pk)
         except Channel.DoesNotExist:
             return Response({"error": "Channel not found"}, status=404)
-        user = request.user
-        if not channel.owner == user:
-            return Response({"error": "You are not the owner of this channel"}, status=403)
+        owner = request.user
+        if not channel.owner == owner:
+            return Response(
+                {"error": "You are not the owner of this channel"}, status=403
+            )
         username = request.data.get("username", None)
         if not username:
             return Response({"error": "Username not provided"}, status=400)
@@ -110,15 +125,18 @@ class ChannelViewSet(viewsets.ModelViewSet):
         channel.admins.add(user)
         return Response({"message": f"User {username} added as admin"}, status=200)
 
+    # Owner remove channel's admin by username
     @action(detail=True, methods=["post"])
-    def removeAdminChannel(self, request, pk):
+    def removeAdmin(self, request, pk):
         try:
             channel = Channel.objects.get(id=pk)
         except Channel.DoesNotExist:
             return Response({"error": "Channel not found"}, status=404)
-        user = request.user
-        if not channel.admins.filter(id=user.id).exists():
-            return Response({"error": "You are not an admin"}, status=403)
+        owner = request.user
+        if not channel.owner == owner:
+            return Response(
+                {"error": "You are not the owner of this channel"}, status=403
+            )
         username = request.data.get("username", None)
         if not username:
             return Response({"error": "Username not provided"}, status=400)
@@ -128,6 +146,9 @@ class ChannelViewSet(viewsets.ModelViewSet):
             return Response({"error": "User not found"}, status=404)
         if not channel.admins.filter(username=username).exists():
             return Response({"error": "User is not an admin"}, status=400)
+        # Check if the user is owner of the channel
+        if channel.owner == user:
+            return Response({"error": "Can't remove the owner from admins"}, status=400)
         channel.admins.remove(user)
         return Response({"message": f"User {username} removed as admin"}, status=200)
 
@@ -179,40 +200,195 @@ class ChannelViewSet(viewsets.ModelViewSet):
             channel.admins.remove(user)
         serializer = self.get_serializer(channel)
         return Response(serializer.data, status=200)
-    
+
     @action(detail=True, methods=["post"])
     def banMember(self, request, pk):
         try:
             channel = Channel.objects.get(id=pk)
         except Channel.DoesNotExist:
             return Response({"error": "Channel not found"}, status=404)
-        user = request.user
-        if not channel.admins.filter(id=user.id).exists():
+        admin = request.user
+        if not channel.admins.filter(id=admin.id).exists():
             return Response({"error": "You are not an admin"}, status=403)
         username = request.data.get("username", None)
-        until = request.data.get("until", None)
         if not username:
             return Response({"error": "Username not provided"}, status=400)
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=404)
-        if not channel.members.filter(id=user.id).exists():
-            return Response({"error": "User is not in this channel"}, status=400)
-        ChannelBannedUser.objects.create(channel=channel, user=user, until=until)
-        return Response({"message": f"User {username} banned"}, status=200)
+        # Check if the user is owner of the channel
+        if channel.owner == user:
+            return Response({"error": "Can't ban the owner"}, status=400)
+        # Check if the user is admin of the channel
+        if channel.admins.filter(id=user.id).exists():
+            return Response({"error": "Can't ban an admin"}, status=400)
+        # Check if the user is banned from the channel
+        if ChannelBannedUser.objects.filter(channel=channel, user=user).exists():
+            return Response({"error": "User is already banned"}, status=400)
+        until_string = request.data.get("until", None)
+        if not until_string:
+            until = datetime.max.date()
+        else:
+            until = parse_date(until_string)
+        if channel.members.filter(id=user.id).exists():
+            channel.members.remove(user)
+        banned_user = ChannelBannedUser.objects.create(
+            channel=channel, user=user, until=until
+        )
+        serializer = ChannelBannedUserSerializer(banned_user)
+        return Response(serializer.data, status=200)
+
+    @action(detail=True, methods=["post"])
+    def unbanMember(self, request, pk):
+        try:
+            channel = Channel.objects.get(id=pk)
+        except Channel.DoesNotExist:
+            return Response({"error": "Channel not found"}, status=404)
+        admin = request.user
+        if not channel.admins.filter(id=admin.id).exists():
+            return Response({"error": "You are not an admin"}, status=403)
+        username = request.data.get("username", None)
+        if not username:
+            return Response({"error": "Username not provided"}, status=400)
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=404)
+        # Check if the user is banned from the channel
+        if not ChannelBannedUser.objects.filter(channel=channel, user=user).exists():
+            return Response({"error": "User is not banned"}, status=400)
+        ChannelBannedUser.objects.filter(channel=channel, user=user).delete()
+        return Response(
+            {"message": f"User {username} unbanned from channel"}, status=200
+        )
+
+    # Mute member view
+    @action(detail=True, methods=["post"])
+    def muteMember(self, request, pk):
+        try:
+            channel = Channel.objects.get(id=pk)
+        except Channel.DoesNotExist:
+            return Response({"error": "Channel not found"}, status=404)
+        admin = request.user
+        if not channel.admins.filter(id=admin.id).exists():
+            return Response({"error": "You are not an admin"}, status=403)
+        username = request.data.get("username", None)
+        if not username:
+            return Response({"error": "Username not provided"}, status=400)
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=404)
+        # Check if the user is admin or owner of the channel
+        if channel.owner == user or channel.admins.filter(id=user.id).exists():
+            return Response({"error": "Can't mute an admin or owner"}, status=400)
+        # Check if the user is muted
+        if ChannelMutedUser.objects.filter(channel=channel, user=user).exists():
+            return Response({"error": "User is already muted"}, status=400)
+        until_string = request.data.get("until", None)
+        if not until_string:
+            until = datetime.max.date()
+        else:
+            until = parse_date(until_string)
+        muted_user = ChannelMutedUser.objects.create(
+            channel=channel, user=user, until=until
+        )
+        serializer = ChannelMutedUserSerializer(muted_user)
+        return Response(serializer.data, status=200)
+
+    # Unmuted member view
+    @action(detail=True, methods=["post"])
+    def unmuteMember(self, request, pk):
+        try:
+            channel = Channel.objects.get(id=pk)
+        except Channel.DoesNotExist:
+            return Response({"error": "Channel not found"}, status=404)
+        admin = request.user
+        if not channel.admins.filter(id=admin.id).exists():
+            return Response({"error": "You are not an admin"}, status=403)
+        username = request.data.get("username", None)
+        if not username:
+            return Response({"error": "Username not provided"}, status=400)
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=404)
+        # Check if the user is muted
+        if not ChannelMutedUser.objects.filter(channel=channel, user=user).exists():
+            return Response({"error": "User is not muted"}, status=400)
+        ChannelMutedUser.objects.filter(channel=channel, user=user).delete()
+        return Response(
+            {"message": f"User {username} unmuted from channel"}, status=200
+        )
+
+    # Invited member view
+    @action(detail=True, methods=["post"])
+    def inviteMember(self, request, pk):
+        try:
+            channel = Channel.objects.get(id=pk)
+        except Channel.DoesNotExist:
+            return Response({"error": "Channel not found"}, status=404)
+        username = request.data.get("username", None)
+        if not username:
+            return Response({"error": "Username not provided"}, status=400)
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=404)
+        if channel.members.filter(id=user.id).exists():
+            return Response({"error": "User is already a member"}, status=400)
+        if ChannelInvitedUser.objects.filter(channel=channel, user=user).exists():
+            return Response({"error": "User is already invited"}, status=400)
+        invited_user = ChannelInvitedUser.objects.create(channel=channel, user=user)
+        serializer = ChannelInvitedUserSerializer(invited_user)
+        return Response(serializer.data, status=200)
+
+    # Update invitaion status
+    @action(detail=True, methods=["put"])
+    def updateInviteStatus(self, request, pk):
+        try:
+            channel = Channel.objects.get(id=pk)
+        except Channel.DoesNotExist:
+            return Response({"error": "Channel not found"}, status=404)
+        username = request.data.get("username", None)
+        if not username:
+            return Response({"error": "Username not provided"}, status=400)
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=404)
+        # Check if status in the request
+        status = request.data.get("status", None)
+        if not status:
+            return Response({"error": "Status not provided"}, status=400)
+        if status not in ["pending", "accepted", "rejected"]:
+            return Response({"error": "Invalid status"}, status=400)
+        # Check if the user is invited
+        if not ChannelInvitedUser.objects.filter(channel=channel, user=user).exists():
+            return Response({"error": "User is not invited"}, status=400)
+        invited_user = ChannelInvitedUser.objects.get(channel=channel, user=user)
+        invited_user.status = status
+        invited_user.save()
+        serializer = ChannelInvitedUserSerializer(invited_user)
+        return Response(serializer.data, status=200)
 
     def get_permissions(self):
         if self.action in [
-            "generateMyChannel",
+            "createChannel",
             "listMyChannels",
             "getMyChannel",
             "updateMyChannel",
-            "addAdminChannel",
-            "removeAdminChannel",
+            "addAdmin",
+            "removeAdmin",
             "joinChannel",
             "leaveChannel",
             "banMember",
+            "unbanMember",
+            "muteMember",
+            "unmuteMember",
+            "inviteMember",
+            "updateInviteStatus",
         ]:
             self.permission_classes = [IsAuthenticated]
         else:

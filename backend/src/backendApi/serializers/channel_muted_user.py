@@ -1,0 +1,11 @@
+from backendApi.models import ChannelMutedUser
+from rest_framework import serializers
+
+
+class ChannelMutedUserSerializer(serializers.ModelSerializer):
+    channel_name = serializers.CharField(source="channel.name", read_only=True)
+    muteduser_name = serializers.CharField(source="user.username", read_only=True)
+
+    class Meta:
+        model = ChannelMutedUser
+        fields = ["id", "channel_name", "muteduser_name", "until", "created_at"]
