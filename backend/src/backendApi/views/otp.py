@@ -19,8 +19,20 @@ class OtpViewSet(viewsets.ModelViewSet):
     queryset = Otp.objects.all()
     serializer_class = OtpSerializer
 
-    @action(detail=False, methods=['post'])
+
+    @action(detail=False, methods=['get'])
     def getOtpStatus(self, request):
+        user = request.user
+        if user is None:
+            return Response({'error': 'User not found'}, status=404)
+        try:
+            instance = Otp.objects.get(user=user)
+        except Otp.DoesNotExist:
+            return Response({'error': 'OTP not found'}, status=404)
+        return Response({'otpStatus': instance.otpStatus}, status=200)
+
+    @action(detail=False, methods=['post'])
+    def postOtpStatus(self, request):
         username = request.data.get('username', None)
         password = request.data.get('password', None)
         if not username or not password:
@@ -92,9 +104,9 @@ class OtpViewSet(viewsets.ModelViewSet):
         return HttpResponse(img_io, content_type='image/png')
 
     def get_permissions(self):
-        if self.action in ['getOtpStatus']:
+        if self.action in ['postOtpStatus']:
             self.permission_classes = [AllowAny]
-        elif self.action in ['switchOtpStatus', 'getOtpCode', 'checkOtpCode', 'getQRcode']:
+        elif self.action in ['getOtpStatus', 'switchOtpStatus', 'getOtpCode', 'checkOtpCode', 'getQRcode']:
             self.permission_classes = [IsAuthenticated]
         else:
             self.permission_classes = [IsAdminUser]

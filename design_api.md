@@ -9,6 +9,7 @@
 -   **Auth**
     -   [Login](#login)
     -   [Register](#register)
+    -   [Logout](#logout)
     -   [Switch OTP status](#switch-otp-status)
     -   [Get OTP status](#get-otp-status)
     -   [Get OTP code](#get-otp-code)
@@ -31,44 +32,18 @@
     -   [Ban user in channel by admin](#ban-user-in-channel-by-admin)
     -   [Unban user in channel by admin](#unban-user-in-channel-by-admin)
     -   [Mute user in channel by admin](#mute-user-in-channel-by-admin)
-    -   [Unmute user in channel by admin](#unmute-user-in-channel-by-admin) -	[Invite user in channel](#invite-user-in-channel)
-    -   [Send a message in a channel](#send-message-into-channel)
-    -   [Retrieve channel conversation](#get-channel-messages)
-    -   [New message](#new-channel-message)
-    -   [On channel update](#on-channel-update)
-    -   [On member join](#on-member-join)
-    -   [On member leave](#on-member-leave)
-    -   [On admin added](#on-admin-added)
-    -   [On admin removed](#on-admin-removed)
-    -   [On member ban](#on-member-ban)
-    -   [On member mute](#on-member-mute)
-    -   [On channel invitation](#on-channel-invitation)
+    -   [Unmute user in channel by admin](#unmute-user-in-channel-by-admin)
+    -   [Invite user in channel by admin](#invite-user-in-channel-by-admin)
+    -   [Update user's invitation status](#update-users-invitation-status)
+    -   [Send message in channel](#send-message-in-channel)
+    -   [Get list user's messages in channel](#get-list-users-messages-in-channel)
+    -   [Update the content of a message](#update-the-content-of-a-message)
+
 -   **Games**
-    -   [Create a game](#create-a-game)
-    -   [Join a game](#join-a-game)
-    -   [Quit a game](#quit-a-game)
-    -   [Join the matchmaking](#join-matchmaking)
-    -   [Send new player position](#send-new-player-position)
-    -   [Invite a user in a game](#invite-a-player-in-a-game)
-    -   [Get a player games history](#get-player-games-history)
-    -   [Get a player statistics](#get-player-statistics)
-    -   [Get the leadreboards](#get-leaderboards)
-    -   [Start watching a game](#start-watching-a-game)
-    -   [Stop watching a game](#stop-watching-a-game)
-    *   [Before game start](#game-start)
-    *   [On game end](#game-end)
-    *   [New opponent position](#new-opponent-position)
-    *   [New score](#new-score-after-a-goal)
-    *   [New ball position](#new-ball-position)
-    *   [Watch - New creator position](#watch---new-creator-position)
-    *   [Watch - New opponent position](#watch---new-opponent-position)
-    *   [Watch - New ball position](#watch---new-ball-position)
-    *   [Watch - New score](#watch---new-score-after-a-goal)
-    *   [Watch - On game end](#watch---game-end)
 
 # Authentication
 
-Every routes, except `/register` and `/login` you need to provide an Bearer token in the request headers.
+Every routes, except `/register`, `/login` and `/otp/status` you need to provide an Bearer token in the request headers.
 
 ```
 authorization: Bearer <token>
@@ -76,14 +51,14 @@ authorization: Bearer <token>
 
 ## Login
 
-````typescript
+```typescript
 POST /api/v1/auth/login
 {
 	username: string,
 	password: string,
 	otp: string (optional)
 }
-````
+```
 
 Login with this username, password and an optional TOTP
 
@@ -120,6 +95,21 @@ POST /api/v1/auth/register
 
 Register a user if it doesn't exist
 
+## Logout
+
+```typescript
+POST /api/v1/auth/logout
+authorization Bearer <token>
+```
+
+### Return
+
+```typescript
+{
+    message: string;
+}
+```
+
 ## Switch OTP status
 
 ```typescript
@@ -137,7 +127,7 @@ authorization Bearer <token>
 
 Switch OTP status: true -> false, false -> true
 
-## Get OTP status
+## Post OTP status
 
 Anyone can get OTP status with username and password
 
@@ -147,6 +137,24 @@ POST /api/v1/auth/otp/status
 	username: string,
 	password: string
 }
+```
+
+### Return
+
+```typescript
+{
+    otpStatus: boolean;
+}
+```
+
+
+## Get OTP status
+
+Only authenticated user can get OTP status
+
+```typescript
+GET /api/v1/auth/otp/status
+authorization Bearer <token>
 ```
 
 ### Return
@@ -316,7 +324,7 @@ authorization Bearer <token>
 
 ## Update channel by owner
 
-Only channel's owner can update the channel
+Only channel's owner can update the channel1
 
 ```typescript
 PUT /api/v1/channel/update/<channel_id>
@@ -487,7 +495,7 @@ authorization Bearer <token>
 
 -   The invited user object ([ChannelInvitedUser](#channelinviteduser))
 
-## Update status of user's invitation
+## Update user's invitation status
 
 Only channel's admin can update status of user's invitation.
 
@@ -520,7 +528,7 @@ authorization Bearer <token>
 
 -   A ChannelMessage object ([ChannelMessage](#channelmessage))
 
-## Get list messages send by a user in channel
+## Get list user's messages in channel
 
 ```typescript
 GET /api/v1/channel/<channel_id>/message

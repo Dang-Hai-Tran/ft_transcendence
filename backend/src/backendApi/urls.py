@@ -51,7 +51,7 @@ urlpatterns = [
     path("auth/otp", OtpViewSet.as_view({"get": "getOtpCode"})),
     path("auth/otp/check", OtpViewSet.as_view({"post": "checkOtpCode"})),
     path("auth/otp/qr-code", OtpViewSet.as_view({"get": "getQRcode"})),
-    path("auth/otp/status", OtpViewSet.as_view({"post": "getOtpStatus"})),
+    path("auth/otp/status", OtpViewSet.as_view({"post": "postOtpStatus", "get": "getOtpStatus"})),
     path("auth/otp/switch", OtpViewSet.as_view({"post": "switchOtpStatus"})),
     path(
         "user-messages", UserMessageViewSet.as_view({"get": "list", "post": "create"})

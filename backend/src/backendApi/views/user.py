@@ -51,7 +51,6 @@ class UserViewSet(viewsets.ModelViewSet):
         user.status = "online"
         user.save()
         refresh = RefreshToken.for_user(user)
-        request.session["refresh_token"] = str(refresh)
         return Response(
             {
                 "message": f"User {username} login",
@@ -67,17 +66,6 @@ class UserViewSet(viewsets.ModelViewSet):
         # Update user status to 'offline'
         user.status = "offline"
         user.save()
-        # Invalidate access token
-        refresh_token = request.session.get("refresh_token")
-        if not refresh_token:
-            return Response({"error": "No refresh token found"}, status=400)
-        try:
-            refresh = RefreshToken(token=refresh_token, verify=True)
-            access_token = refresh.access_token
-            access_token.set_exp(lifetime=timedelta(seconds=0))
-            del request.session["refresh_token"]
-        except TokenError:
-            return Response({"error": "Invalid refresh token"}, status=400)
         return Response({"message": f"User {user.username} logout"}, status=200)
 
     @action(detail=True, methods=["get"])
