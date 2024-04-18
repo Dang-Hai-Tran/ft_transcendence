@@ -8,4 +8,18 @@ class ChannelBannedUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ChannelBannedUser
-        fields = ["id", "channel_name", "banneduser_name", "until", "created_at"] 
+        fields = [
+            "id",
+            "channel_name",
+            "banneduser_name",
+            "until",
+            "created_at",
+            "updated_at",
+        ]
+        reads_only_fields = [
+            "id",
+            "channel_name",
+            "banneduser_name",
+            "created_at",
+            "updated_at",
+        ]

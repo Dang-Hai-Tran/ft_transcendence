@@ -401,7 +401,9 @@ authorization Bearer <token>
 
 ## Join a channel
 
-Every one can join a public channel. Only invited users can join a private channel. If user is banned from the channel, he can't join it. The user have to provide a password to join if the channel's password is set. The user will be added to the list of members of the channel.
+Every one can join a public channel. Only invited users can join a private channel. If user is banned from the channel,
+he can't join it. The user have to provide a password to join if the channel's password is set. The user will be added
+to the list of members of the channel.
 
 ```typescript
 POST /api/v1/channel/<channel_id>/join
@@ -427,7 +429,8 @@ authorization Bearer <token>
 
 ## Ban user in channel by admin
 
-You must be an admin to ban a user from a channel. If this user is actually a member of the channel, he will be removed from the list of members. You can't ban an admin or owner of the channel.
+You must be an admin to ban a user from a channel. If this user is actually a member of the channel, he will be removed
+from the list of members. You can't ban an admin or owner of the channel.
 
 ```typescript
 POST /api/v1/channel/<channel_id>/member/ban
@@ -440,11 +443,12 @@ authorization Bearer <token>
 
 ### Return
 
--   The banned user object ([ChannelBannedUser](#channelbanneduser))
+-   The channel banned user object ([ChannelBannedUser](#channelbanneduser))
 
 ## Unban user in channel by admin
 
-You must be an admin to unban a user from a channel. If the user isn't in banned list, error will be raised. The record will be removed from ChannelBannedUser table.
+You must be an admin to unban a user from a channel. If the user isn't in banned list, error will be raised. The record
+will be removed from ChannelBannedUser table.
 
 ```typescript
 POST /api/v1/channel/<channel_id>/member/unban
@@ -456,11 +460,7 @@ authorization Bearer <token>
 
 ### Return
 
-```typescript
-{
-    message: string;
-}
-```
+-   The updated banned user object ([ChannelBannedUser](#channelbanneduser))
 
 ## Mute user in channel by admin
 
@@ -477,11 +477,12 @@ authorization Bearer <token>
 
 ### Return
 
--   The muted user object ([ChannelMutedUser](#channelmuteduser))
+-   The channel muted user object ([ChannelMutedUser](#channelmuteduser))
 
 ## Unmute user in channel by admin
 
-You must be an admin to unmute a user from a channel. If the user isn't muted, error will be raised. The record will be removed from ChannelMutedUser table.
+You must be an admin to unmute a user from a channel. If the user isn't muted, error will be raised. The record will be
+removed from ChannelMutedUser table.
 
 ```typescript
 POST /api/v1/channel/<channel_id>/member/unmute
@@ -493,11 +494,7 @@ authorization Bearer <token>
 
 ### Return
 
-```typescript
-{
-    message: string;
-}
-```
+-   The updated channel muted user object ([ChannelMutedUser](#channelmuteduser))
 
 ## Invite user in channel by admin
 
@@ -532,211 +529,76 @@ authorization Bearer <token>
 
 -   The updated invited user object ([ChannelInvitedUser](#channelinviteduser))
 
+## Send message in channel
 
-### **Send message into channel**
-
-#### Input
+The sender and receiver must be members of the channel
 
 ```typescript
-message: `channels_sendMessage`
-payload: {
-	id: number, // the channel id
-	message: string,
+POST /api/v1/channel/<channel_id>/message
+authorization Bearer <token>
+{
+	"content": string
 }
 ```
 
-#### Return
+### Return
 
 -   A ChannelMessage object ([ChannelMessage](#channelmessage))
--   A [WSResponse](#wsresponse)
-    -   ```typescript
-        {
-        	statusCode: 400,
-        	error: 'Bad request',
-        	messages: string[] // describing malformed payload
-        }
-        ```
-    -   ```typescript
-        {
-        	statusCode: 403,
-        	error: 'Forbidden',
-        	messages: ['Only channel members can send messages'],
-        			| ['You are muted in this channel']
-        }
-        ```
-    -   ```typescript
-        {
-        	statusCode: 404,
-        	error: 'Not found',
-        	messages: ['Channel not found']
-        }
-        ```
 
-### **Get channel messages**
-
-Retrieve 200 message before the date passed.
-
-#### Input
+## Get list messages send by a user in channel
 
 ```typescript
-message: `channels_messages`
-payload: {
-	id: number, // the channel id
-	before: string, // ISO date
+GET /api/v1/channel/<channel_id>/message
+authorization Bearer <token>
+```
+
+### Return
+
+-   A list of ChannelMessage objects ([ChannelMessage](#channelmessage))
+
+## Update the content of a message
+
+Only the sender of the message can update the content of the message
+
+```typescript
+PUT /api/v1/channel/<channel_id>/message/<message_id>
+authorization Bearer <token>
+{
+	"content": string
 }
 ```
 
-### Example
+### Return
 
-To retrieve the last 200 messages.
+-   The updated ChannelMessage object ([ChannelMessage](#channelmessage))
+
+## Get list last 50 messages in channel
 
 ```typescript
-socket.emit(
-    "channels_messages",
-    {
-        id: 1,
-        before: new Date().toISOString(),
-    },
-    (data) => {
-        console.log(data); // The messages array
-    }
-);
+GET /api/v1/channel/<channel_id>/message/last
+authorization Bearer <token>
 ```
 
-#### Return
+### Return
 
--   An array of ChannelMessage object ([ChannelMessage[]](#channelmessage))
--   ```typescript
-    {
-    	statusCode: 400,
-    	error: 'Bad request',
-    	messages: string[] // describing malformed payload
-    }
-    ```
--   ```typescript
-    {
-    	statusCode: 403,
-    	error: 'Forbidden',
-    	messages: ['Only channel members can read messages'],
-    }
-    ```
--   ```typescript
-    {
-    	statusCode: 404,
-    	error: 'Not found',
-    	messages: ['Channel not found']
-    }
-    ```
+-   A list of ChannelMessage objects ([ChannelMessage](#channelmessage))
 
-## Users
+## Invite user tobe friend
 
-### **Get user**
-
-#### Input
+If the user is already friend, error will be raised. If the user is banned from another user, error will be raised.
+Otherwise a new friendship will be created.
 
 ```typescript
-message: `users_get`;
-payload: {
-    id: number; // User id
+POST /api/v1/user/friend/invite
+authorization Bearer <token>
+{
+	"username": string
 }
 ```
 
-#### Return
+### Return
 
--   The user object ([User](#user))
--   A [WSResponse](#wsresponse)
-    -   ```typescript
-        {
-        	statusCode: 400,
-        	error: 'Bad request',
-        	messages: string[] // describing malformed payload
-        }
-        ```
-
-### **Update user**
-
-#### Input
-
-```typescript
-message: `users_update`
-payload: {
-	id: number, // User id
-	username: string, // Optionnal new username
-	displayName: string, // Optionnal new username
-}
-```
-
-#### Return
-
--   The updated user object ([User](#user))
--   A [WSResponse](#wsresponse)
-    -   ```typescript
-        {
-        	statusCode: 400,
-        	error: 'Bad request',
-        	messages: string[] // describing malformed payload
-        }
-        ```
-    -   ```typescript
-        {
-        	statusCode: 403,
-        	error: 'Forbidden',
-        	messages: ['You can only update your own user'],
-        }
-        ```
-    -   ```typescript
-        {
-        	statusCode: 404,
-        	error: 'Not found',
-        	messages: ['User not found'],
-        }
-        ```
-
-### **Invite as friend**
-
-#### Input
-
-```typescript
-message: `users_inviteFriend`
-payload: {
-	username: string, // Username of the friend to invite
-}
-```
-
-#### Return
-
--   The new friendship object ([UserFriend](#userfriend))
--   A [WSResponse](#wsresponse)
-    -   ```typescript
-        {
-        	statusCode: 400,
-        	error: 'Bad request',
-        	messages: string[] // describing malformed payload
-        }
-        ```
-    -   ```typescript
-        {
-        	statusCode: 403,
-        	error: 'Forbidden',
-        	messages: ['You have been banned'],
-        }
-        ```
-    -   ```typescript
-        {
-        	statusCode: 404,
-        	error: 'Not found',
-        	messages: ['User not found'],
-        }
-        ```
-    -   ```typescript
-        {
-        	statusCode: 409,
-        	error: 'Conflict',
-        	messages: ['There is already a pending invitation']
-        				| ["You can't invite yourself"],
-        				| ["You are already friends"]
-        }
-        ```
+-   A Friendship object ([Friendship](#friendship))
 
 ### **Accept friendship request**
 

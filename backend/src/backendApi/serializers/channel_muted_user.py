@@ -8,4 +8,18 @@ class ChannelMutedUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ChannelMutedUser
-        fields = ["id", "channel_name", "muteduser_name", "until", "created_at"]
+        fields = [
+            "id",
+            "channel_name",
+            "muteduser_name",
+            "until",
+            "created_at",
+            "updated_at",
+        ]
+        reads_only_fields = [
+            "id",
+            "channel_name",
+            "muteduser_name",
+            "created_at",
+            "updated_at",
+        ]

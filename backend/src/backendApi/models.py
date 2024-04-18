@@ -58,6 +58,7 @@ class ChannelBannedUser(models.Model):
     )
     until = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.channel.name} : {self.user.username}"
@@ -72,6 +73,7 @@ class ChannelMutedUser(models.Model):
     )
     until = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.channel.name} : {self.user.username}"
@@ -91,6 +93,7 @@ class ChannelInvitedUser(models.Model):
     ]
     status = models.CharField(choices=statusChoices, default="pending")
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.channel.name} : {self.user.username}"
@@ -167,13 +170,7 @@ class Friendship(models.Model):
     ]
     status = models.CharField(max_length=100, choices=statusChoices, default="pending")
     created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["sender", "receiver"], name="unique_friendship"
-            ),
-        ]
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.sender} : {self.receiver}"
@@ -189,6 +186,7 @@ class MutedUser(models.Model):
     until = models.DateField()
     mutedReason = models.TextField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
 class BannedUser(models.Model):
@@ -201,6 +199,7 @@ class BannedUser(models.Model):
     until = models.DateField()
     bannedReason = models.TextField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
 class Otp(models.Model):

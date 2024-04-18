@@ -8,4 +8,18 @@ class ChannelInvitedUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ChannelInvitedUser
-        fields = ["id", "channel_name", "inviteduser_name", "status", "created_at"]
+        fields = [
+            "id",
+            "channel_name",
+            "inviteduser_name",
+            "status",
+            "created_at",
+            "updated_at",
+        ]
+        reads_only_fields = [
+            "id",
+            "channel_name",
+            "inviteduser_name",
+            "created_at",
+            "updated_at",
+        ]

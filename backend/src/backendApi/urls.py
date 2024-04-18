@@ -5,6 +5,7 @@ from .views.user import UserViewSet
 from .views.channel import ChannelViewSet
 from .views.user_message import UserMessageViewSet
 from .views.otp import OtpViewSet
+from .views.channel_message import ChannelMessageViewSet
 
 urlpatterns = [
     # Tokens
@@ -79,39 +80,79 @@ urlpatterns = [
     ),
     path("channel/list", ChannelViewSet.as_view({"get": "listMyChannels"})),
     path(
-        "channel/<int:pk>/update",
+        "channel/<int:channel_id>/update",
         ChannelViewSet.as_view({"put": "updateMyChannel"}),
     ),
-    path("channel/<int:pk>/get", ChannelViewSet.as_view({"get": "getMyChannel"})),
     path(
-        "channel/<int:pk>/admin/add",
+        "channel/<int:channel_id>/get", ChannelViewSet.as_view({"get": "getMyChannel"})
+    ),
+    path(
+        "channel/<int:channel_id>/admin/add",
         ChannelViewSet.as_view({"post": "addAdmin"}),
     ),
     path(
-        "channel/<int:pk>/admin/remove",
+        "channel/<int:channel_id>/admin/remove",
         ChannelViewSet.as_view({"post": "removeAdmin"}),
     ),
     path(
-        "channel/<int:pk>/member/join", ChannelViewSet.as_view({"post": "joinChannel"})
+        "channel/<int:channel_id>/member/join",
+        ChannelViewSet.as_view({"post": "joinChannel"}),
     ),
     path(
-        "channel/<int:pk>/member/leave",
+        "channel/<int:channel_id>/member/leave",
         ChannelViewSet.as_view({"post": "leaveChannel"}),
     ),
-    path("channel/<int:pk>/member/ban", ChannelViewSet.as_view({"post": "banMember"})),
     path(
-        "channel/<int:pk>/member/unban", ChannelViewSet.as_view({"post": "unbanMember"})
+        "channel/<int:channel_id>/member/ban",
+        ChannelViewSet.as_view({"post": "banMember"}),
     ),
     path(
-        "channel/<int:pk>/member/mute",
+        "channel/<int:channel_id>/member/unban",
+        ChannelViewSet.as_view({"post": "unbanMember"}),
+    ),
+    path(
+        "channel/<int:channel_id>/member/mute",
         ChannelViewSet.as_view({"post": "muteMember"}),
     ),
     path(
-        "channel/<int:pk>/member/unmute",
+        "channel/<int:channel_id>/member/unmute",
         ChannelViewSet.as_view({"post": "unmuteMember"}),
     ),
     path(
-        "channel/<int:pk>/member/invite",
+        "channel/<int:channel_id>/member/invite",
         ChannelViewSet.as_view({"post": "inviteMember", "put": "updateInviteStatus"}),
+    ),
+    # Channel messages
+    path(
+        "channel/messages",
+        ChannelMessageViewSet.as_view({"get": "list", "post": "create"}),
+    ),
+    path(
+        "channel/messages/<int:pk>",
+        ChannelMessageViewSet.as_view(
+            {
+                "get": "retrieve",
+                "put": "update",
+                "patch": "partial_update",
+                "delete": "destroy",
+            }
+        ),
+    ),
+    path(
+        "channel/<int:channel_id>/message",
+        ChannelMessageViewSet.as_view(
+            {
+                "post": "createMessage",
+                "get": "listMessages",
+            }
+        ),
+    ),
+    path(
+        "channel/<int:channel_id>/message/<int:channelmessage_id>",
+        ChannelMessageViewSet.as_view({"put": "updateMessageContent"}),
+    ),
+    path(
+        "channel/<int:channel_id>/message/last",
+        ChannelMessageViewSet.as_view({"get": "listLastMessages"}),
     ),
 ]

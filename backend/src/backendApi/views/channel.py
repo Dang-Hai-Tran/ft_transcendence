@@ -5,7 +5,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from backendApi.hash import verify_password
-from datetime import datetime, timezone
+from datetime import datetime
 from django.utils.dateparse import parse_date
 
 
@@ -16,6 +16,7 @@ from backendApi.models import (
     ChannelMutedUser,
     User,
 )
+
 from backendApi.serializers.channel import ChannelSerializer
 from backendApi.serializers.channel_banned_user import ChannelBannedUserSerializer
 from backendApi.serializers.channel_muted_user import ChannelMutedUserSerializer
@@ -57,9 +58,9 @@ class ChannelViewSet(viewsets.ModelViewSet):
 
     # Update channel view. Only the channel's owner can update a channel.
     @action(detail=True, methods=["put"])
-    def updateMyChannel(self, request, pk):
+    def updateMyChannel(self, request, channel_id):
         try:
-            channel = Channel.objects.get(id=pk)
+            channel = Channel.objects.get(id=channel_id)
         except Channel.DoesNotExist:
             return Response({"error": "Channel not found"}, status=404)
         user = request.user
@@ -76,9 +77,9 @@ class ChannelViewSet(viewsets.ModelViewSet):
 
     # Get channel view if user in channel or is invited or channel is public
     @action(detail=True, methods=["get"])
-    def getMyChannel(self, request, pk):
+    def getMyChannel(self, request, channel_id):
         try:
-            channel = Channel.objects.get(id=pk)
+            channel = Channel.objects.get(id=channel_id)
         except Channel.DoesNotExist:
             return Response({"error": "Channel not found"}, status=404)
         user = request.user
@@ -100,9 +101,9 @@ class ChannelViewSet(viewsets.ModelViewSet):
 
     # Owner add channel's admin by username
     @action(detail=True, methods=["post"])
-    def addAdmin(self, request, pk):
+    def addAdmin(self, request, channel_id):
         try:
-            channel = Channel.objects.get(id=pk)
+            channel = Channel.objects.get(id=channel_id)
         except Channel.DoesNotExist:
             return Response({"error": "Channel not found"}, status=404)
         owner = request.user
@@ -127,9 +128,9 @@ class ChannelViewSet(viewsets.ModelViewSet):
 
     # Owner remove channel's admin by username
     @action(detail=True, methods=["post"])
-    def removeAdmin(self, request, pk):
+    def removeAdmin(self, request, channel_id):
         try:
-            channel = Channel.objects.get(id=pk)
+            channel = Channel.objects.get(id=channel_id)
         except Channel.DoesNotExist:
             return Response({"error": "Channel not found"}, status=404)
         owner = request.user
@@ -153,9 +154,9 @@ class ChannelViewSet(viewsets.ModelViewSet):
         return Response({"message": f"User {username} removed as admin"}, status=200)
 
     @action(detail=True, methods=["post"])
-    def joinChannel(self, request, pk):
+    def joinChannel(self, request, channel_id):
         try:
-            channel = Channel.objects.get(id=pk)
+            channel = Channel.objects.get(id=channel_id)
         except Channel.DoesNotExist:
             return Response({"error": "Channel not found"}, status=404)
         user = request.user
@@ -163,7 +164,11 @@ class ChannelViewSet(viewsets.ModelViewSet):
             return Response({"error": "You are already in this channel"}, status=400)
         # Check if the user is banned from the channel
         if ChannelBannedUser.objects.filter(channel=channel, user=user).exists():
-            return Response({"error": "You are banned from this channel"}, status=403)
+            banned_user = ChannelBannedUser.objects.get(channel=channel, user=user)
+            if banned_user.until >= datetime.now().date():
+                return Response(
+                    {"error": "You are banned from this channel"}, status=403
+                )
         # Check if user is invited
         if ChannelInvitedUser.objects.filter(channel=channel, user=user).exists():
             channel_invited_user = ChannelInvitedUser.objects.get(
@@ -186,9 +191,9 @@ class ChannelViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=200)
 
     @action(detail=True, methods=["post"])
-    def leaveChannel(self, request, pk):
+    def leaveChannel(self, request, channel_id):
         try:
-            channel = Channel.objects.get(id=pk)
+            channel = Channel.objects.get(id=channel_id)
         except Channel.DoesNotExist:
             return Response({"error": "Channel not found"}, status=404)
         user = request.user
@@ -202,9 +207,9 @@ class ChannelViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=200)
 
     @action(detail=True, methods=["post"])
-    def banMember(self, request, pk):
+    def banMember(self, request, channel_id):
         try:
-            channel = Channel.objects.get(id=pk)
+            channel = Channel.objects.get(id=channel_id)
         except Channel.DoesNotExist:
             return Response({"error": "Channel not found"}, status=404)
         admin = request.user
@@ -240,9 +245,9 @@ class ChannelViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=200)
 
     @action(detail=True, methods=["post"])
-    def unbanMember(self, request, pk):
+    def unbanMember(self, request, channel_id):
         try:
-            channel = Channel.objects.get(id=pk)
+            channel = Channel.objects.get(id=channel_id)
         except Channel.DoesNotExist:
             return Response({"error": "Channel not found"}, status=404)
         admin = request.user
@@ -258,16 +263,17 @@ class ChannelViewSet(viewsets.ModelViewSet):
         # Check if the user is banned from the channel
         if not ChannelBannedUser.objects.filter(channel=channel, user=user).exists():
             return Response({"error": "User is not banned"}, status=400)
-        ChannelBannedUser.objects.filter(channel=channel, user=user).delete()
-        return Response(
-            {"message": f"User {username} unbanned from channel"}, status=200
-        )
+        banned_user = ChannelBannedUser.objects.get(channel=channel, user=user)
+        banned_user.until = datetime.min.date()
+        banned_user.save()
+        serializer = ChannelBannedUserSerializer(banned_user)
+        return Response(serializer.data, status=200)
 
     # Mute member view
     @action(detail=True, methods=["post"])
-    def muteMember(self, request, pk):
+    def muteMember(self, request, channel_id):
         try:
-            channel = Channel.objects.get(id=pk)
+            channel = Channel.objects.get(id=channel_id)
         except Channel.DoesNotExist:
             return Response({"error": "Channel not found"}, status=404)
         admin = request.user
@@ -299,9 +305,9 @@ class ChannelViewSet(viewsets.ModelViewSet):
 
     # Unmuted member view
     @action(detail=True, methods=["post"])
-    def unmuteMember(self, request, pk):
+    def unmuteMember(self, request, channel_id):
         try:
-            channel = Channel.objects.get(id=pk)
+            channel = Channel.objects.get(id=channel_id)
         except Channel.DoesNotExist:
             return Response({"error": "Channel not found"}, status=404)
         admin = request.user
@@ -317,16 +323,17 @@ class ChannelViewSet(viewsets.ModelViewSet):
         # Check if the user is muted
         if not ChannelMutedUser.objects.filter(channel=channel, user=user).exists():
             return Response({"error": "User is not muted"}, status=400)
-        ChannelMutedUser.objects.filter(channel=channel, user=user).delete()
-        return Response(
-            {"message": f"User {username} unmuted from channel"}, status=200
-        )
+        muted_user = ChannelMutedUser.objects.filter(channel=channel, user=user)
+        muted_user.until = datetime.min.date()
+        muted_user.save()
+        serializer = ChannelMutedUserSerializer(muted_user)
+        return Response(serializer.data, status=200)
 
     # Invited member view
-    @action(detail=True, methods=["post"])
-    def inviteMember(self, request, pk):
+    @action(detail=True, methods=["post", "put"])
+    def inviteMember(self, request, channel_id):
         try:
-            channel = Channel.objects.get(id=pk)
+            channel = Channel.objects.get(id=channel_id)
         except Channel.DoesNotExist:
             return Response({"error": "Channel not found"}, status=404)
         username = request.data.get("username", None)
@@ -345,10 +352,10 @@ class ChannelViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=200)
 
     # Update invitaion status
-    @action(detail=True, methods=["put"])
-    def updateInviteStatus(self, request, pk):
+    @action(detail=True, methods=["post", "put"])
+    def updateInviteStatus(self, request, channel_id):
         try:
-            channel = Channel.objects.get(id=pk)
+            channel = Channel.objects.get(id=channel_id)
         except Channel.DoesNotExist:
             return Response({"error": "Channel not found"}, status=404)
         username = request.data.get("username", None)
