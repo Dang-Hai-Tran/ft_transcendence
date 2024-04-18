@@ -124,9 +124,6 @@ Register a user if it doesn't exist
 
 ```typescript
 POST /api/v1/auth/otp/switch
-{
-	username: string
-}
 authorization Bearer <token>
 ```
 
@@ -145,7 +142,7 @@ Switch OTP status: true -> false, false -> true
 Anyone can get OTP status with username and password
 
 ```typescript
-GET /api/v1/auth/otp/status
+POST /api/v1/auth/otp/status
 {
 	username: string,
 	password: string
@@ -182,7 +179,6 @@ Get OTP of a user
 ```typescript
 POST /api/v1/auth/otp/check
 {
-	username: string,
 	otp: string
 }
 authorization Bearer <token>

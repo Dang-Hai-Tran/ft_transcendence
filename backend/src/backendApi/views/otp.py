@@ -19,7 +19,7 @@ class OtpViewSet(viewsets.ModelViewSet):
     queryset = Otp.objects.all()
     serializer_class = OtpSerializer
 
-    @action(detail=True, methods=['get'])
+    @action(detail=False, methods=['post'])
     def getOtpStatus(self, request):
         username = request.data.get('username', None)
         password = request.data.get('password', None)
@@ -31,15 +31,15 @@ class OtpViewSet(viewsets.ModelViewSet):
             return Response({'error': 'User not found'}, status=404)
         if not user.check_password(password):
             return Response({'error': 'Password not matched'}, status=400)
-        instance = Otp.objects.get(user=user)
-        return Response({'otpStatus': instance.otpStatus}, status=200)
+        try:
+            otp = Otp.objects.get(user=user)
+        except Otp.DoesNotExist:
+            return Response({'error': 'OTP not found'}, status=404)
+        return Response({'otpStatus': otp.otpStatus}, status=200)
 
     @action(detail=True, methods=['post'])
     def switchOtpStatus(self, request):
-        username = request.data.get('username')
-        user = User.objects.get(username=username)
-        if user is None:
-            return Response({'error': 'User not found'}, status=404)
+        user = request.user
         instance = Otp.objects.get(user=user)
         instance.otpStatus = not instance.otpStatus
         instance.save()
@@ -57,13 +57,9 @@ class OtpViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def checkOtpCode(self, request):
-        username = request.data.get('username')
+        user = request.user
         otp = request.data.get('otp')
-        user = User.objects.get(username=username)
-        if user is None:
-            return Response({'error': 'User not found'}, status=404)
         instance = Otp.objects.get(user=user)
-        print(f"Otp code of {username} is {instance.getOtp()}")
         if instance.verifyOtp(otp):
             return Response({'message': 'OTP verified successfully'}, status=200)
         else:
@@ -98,7 +94,7 @@ class OtpViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ['getOtpStatus']:
             self.permission_classes = [AllowAny]
-        if self.action in ['switchOtpStatus', 'getOtpCode', 'checkOtpCode', 'getQRcode']:
+        elif self.action in ['switchOtpStatus', 'getOtpCode', 'checkOtpCode', 'getQRcode']:
             self.permission_classes = [IsAuthenticated]
         else:
             self.permission_classes = [IsAdminUser]
