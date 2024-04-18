@@ -118,7 +118,7 @@ class UserViewSet(viewsets.ModelViewSet):
         if avatarPath:
             return FileResponse(default_storage.open(avatarPath, "rb"))
         else:
-            return Response({"error": "Profile picture not found"}, status=404)
+            return FileResponse(default_storage.open("avatars/default.png", "rb"))
 
     def get_permissions(self):
         if self.action in ["register", "logIn"]:
