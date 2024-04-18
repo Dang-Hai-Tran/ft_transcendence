@@ -21,9 +21,16 @@ class OtpViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def getOtpStatus(self, request):
-        user = request.user
-        if user is None:
+        username = request.data.get('username', None)
+        password = request.data.get('password', None)
+        if not username or not password:
+            return Response({'error': 'Username and password not provided'}, status=400)
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=404)
+        if not user.check_password(password):
+            return Response({'error': 'Password not matched'}, status=400)
         instance = Otp.objects.get(user=user)
         return Response({'otpStatus': instance.otpStatus}, status=200)
 
@@ -89,7 +96,9 @@ class OtpViewSet(viewsets.ModelViewSet):
         return HttpResponse(img_io, content_type='image/png')
 
     def get_permissions(self):
-        if self.action in ['getOtpStatus', 'switchOtpStatus', 'getOtpCode', 'checkOtpCode', 'getQRcode']:
+        if self.action in ['getOtpStatus']:
+            self.permission_classes = [AllowAny]
+        if self.action in ['switchOtpStatus', 'getOtpCode', 'checkOtpCode', 'getQRcode']:
             self.permission_classes = [IsAuthenticated]
         else:
             self.permission_classes = [IsAdminUser]

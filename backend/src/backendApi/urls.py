@@ -6,6 +6,7 @@ from .views.channel import ChannelViewSet
 from .views.user_message import UserMessageViewSet
 from .views.otp import OtpViewSet
 from .views.channel_message import ChannelMessageViewSet
+from .views.friendship import FriendshipViewSet
 
 urlpatterns = [
     # Tokens
@@ -155,4 +156,21 @@ urlpatterns = [
         "channel/<int:channel_id>/message/last",
         ChannelMessageViewSet.as_view({"get": "listLastMessages"}),
     ),
+    # Friendship
+    path(
+        "users/friendships",
+        FriendshipViewSet.as_view({"get": "list", "post": "create"}),
+    ),
+    path(
+        "users/friendships/<int:pk>",
+        FriendshipViewSet.as_view(
+            {
+                "get": "retrieve",
+                "put": "update",
+                "patch": "partial_update",
+                "delete": "destroy",
+            }
+        ),
+    ),
+    path("user/friendship/invite", FriendshipViewSet.as_view({"post": "invite"})),
 ]

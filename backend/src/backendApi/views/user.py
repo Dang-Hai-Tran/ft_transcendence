@@ -5,6 +5,12 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.token_blacklist.models import (
+    OutstandingToken,
+    BlacklistedToken,
+)
+from rest_framework_simplejwt.exceptions import TokenError
+from datetime import timedelta
 from django.core.files.storage import default_storage
 from django.http import FileResponse
 
@@ -45,6 +51,7 @@ class UserViewSet(viewsets.ModelViewSet):
         user.status = "online"
         user.save()
         refresh = RefreshToken.for_user(user)
+        request.session["refresh_token"] = str(refresh)
         return Response(
             {
                 "message": f"User {username} login",
@@ -60,6 +67,17 @@ class UserViewSet(viewsets.ModelViewSet):
         # Update user status to 'offline'
         user.status = "offline"
         user.save()
+        # Invalidate access token
+        refresh_token = request.session.get("refresh_token")
+        if not refresh_token:
+            return Response({"error": "No refresh token found"}, status=400)
+        try:
+            refresh = RefreshToken(token=refresh_token, verify=True)
+            # Invalidate refresh token
+            # refresh.blacklist()
+            del request.session["refresh_token"]
+        except TokenError:
+            return Response({"error": "Invalid refresh token"}, status=400)
         return Response({"message": f"User {user.username} logout"}, status=200)
 
     @action(detail=True, methods=["get"])

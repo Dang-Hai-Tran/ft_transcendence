@@ -2,7 +2,6 @@
 
 -   [Authentication](#authentication)
 -   [Channels](#channels)
--   [Websocker Events](#websocket-events)
 -   [Objects](#objects)
 
 ## Per modules
@@ -17,37 +16,22 @@
     -   [Get OTP QR code](#get-otp-qr-code)
 -   **Users**
     -   [Get informations about yourself](#get-my-profile)
+    -   [Update my profile](#update-my-profile)
     -   [Get a profile avatar](#get-a-profile-avatar)
     -   [Upload a profile avatar](#upload-a-profile-avatar)
-    -   [Get my profile](#get-my-profile)
-    -   [Update a user](#update-user)
-    -   [Invite a friend](#invite-as-friend)
-    -   [Accept a friendship request](#accept-friendship-request)
-    -   [Remove a friend or decline friendship request](#remove-friend-or-decline-friendship-request)
-    -   [Ban a user from your friend](#ban-user)
-    -   [Mute a user](#mute-user)
-    -   [Send a private message](#send-a-message)
-    -   [Retrieve a conversation](#get-messages)
-    -   [New private message](#new-private-message)
-    -   [On profile update](#on-profile-update)
-    -   [On friendship invitation](#on-friendship-invitation)
-    -   [On friendship acceptation](#on-friendship-acceptation)
-    -   [On friendship deletion](#on-friendship-deletion)
-    -   [On ban](#on-ban)
-    -   [On mute](#on-mute)
 -   **Channels**
     -   [Create a channel](#create-channel)
-    -   [List visible channels](#list-channels)
-    -   [Get a channel](#get-channel)
-    -   [Update a channel](#update-channel)
-    -   [Join a channel](#join-channel)
-    -   [List joined channels](#list-joined-channel)
-    -   [Leave a channel](#leave-channel)
-    -   [Add a channel administrator](#add-channel-administrator)
-    -   [Remove a channel administrator](#remove-channel-administrator)
-    -   [Ban a user](#ban-user-from-channel)
-    -   [Mute a user](#mute-user-from-channel)
-    -   [Invite a user in a channel](#invite-user-in-channel)
+    -   [List channels see by user](#list-channels-by-user)
+    -   [Get a channel by user](#get-a-channel-by-user)
+    -   [Update a channel by owner](#update-channel-by-owner)
+    -   [Add new admin by owner](#add-new-admin-by-owner)
+    -   [Remove admin by owner](#remove-admin-by-owner)
+    -   [Join a channel](#join-a-channel)
+    -   [Leave a channel](#leave-a-channel)
+    -   [Ban user in channel by admin](#ban-user-in-channel-by-admin)
+    -   [Unban user in channel by admin](#unban-user-in-channel-by-admin)
+    -   [Mute user in channel by admin](#mute-user-in-channel-by-admin)
+    -   [Unmute user in channel by admin](#unmute-user-in-channel-by-admin) -	[Invite user in channel](#invite-user-in-channel)
     -   [Send a message in a channel](#send-message-into-channel)
     -   [Retrieve channel conversation](#get-channel-messages)
     -   [New message](#new-channel-message)
@@ -94,7 +78,7 @@ authorization: Bearer <token>
 
 ````typescript
 POST /api/v1/auth/login
-{```
+{
 	username: string,
 	password: string,
 	otp: string (optional)
@@ -158,9 +142,14 @@ Switch OTP status: true -> false, false -> true
 
 ## Get OTP status
 
+Anyone can get OTP status with username and password
+
 ```typescript
 GET /api/v1/auth/otp/status
-authorization Bearer <token>
+{
+	username: string,
+	password: string
+}
 ```
 
 ### Return
@@ -170,8 +159,6 @@ authorization Bearer <token>
     otpStatus: boolean;
 }
 ```
-
-Get OTP status of a user
 
 ## Get OTP code
 
@@ -245,11 +232,7 @@ authorization Bearer <token>
 
 ### Return
 
-```
-{
-	updated user's data
-}
-```
+-   The updated user profile ([User](#user))
 
 ## Get a profile avatar
 
@@ -351,11 +334,7 @@ authorization Bearer <token>
 
 ### Return
 
-```typescript
-{
-	... updated channel data ...
-}
-```
+-   The updated channel object ([Channel](#channel))
 
 Updata name, visibility or password of a channel by admin
 
@@ -600,79 +579,43 @@ authorization Bearer <token>
 
 -   A Friendship object ([Friendship](#friendship))
 
-### **Accept friendship request**
+## Update status of user's invitation
 
-#### Input
+Only receiver of the invitation can update status of user's invitation.
 
 ```typescript
-message: `users_acceptFriend`
-payload: {
-	id: number, // Id of the user how invited the client
+PUT /api/v1/user/friend/status/<friendship_id>
+authorization Bearer <token>
+{
+	"status": string // 'accepted' | 'pending' | 'rejected'
 }
 ```
 
-#### Return
+### Return
 
--   The updated friendship object ([UserFriend](#userfriend))
--   A [WSResponse](#wsresponse)
-    -   ```typescript
-        {
-        	statusCode: 400,
-        	error: 'Bad request',
-        	messages: string[] // describing malformed payload
-        }
-        ```
-    -   ```typescript
-        {
-        	statusCode: 409,
-        	error: 'Conflict',
-        	messages: ['Friendship already accepted'],
-        }
-        ```
-    -   ```typescript
-        {
-        	statusCode: 404,
-        	error: 'Not found',
-        	messages: ['User not found'],
-        }
-        ```
+-   A updated Friendship object ([Friendship](#friendship))
 
-### **Remove friend (or decline friendship request)**
-
-#### Input
+## Get list of friend invitation sent from an user
 
 ```typescript
-message: `users_removeFriend`
-payload: {
-	id: number, // Id of the user how invited the client
-}
+GET /api/v1/user/friend/invite/send
+authorization Bearer <token>
 ```
 
-#### Return
+### Return
 
--   The deleted friendship object ([UserFriend](#userfriend))
--   A [WSResponse](#wsresponse)
-    -   ```typescript
-        {
-        	statusCode: 400,
-        	error: 'Bad request',
-        	messages: string[] // describing malformed payload
-        }
-        ```
-    -   ```typescript
-        {
-        	statusCode: 409,
-        	error: 'Conflict',
-        	messages: ['Friendship not found'],
-        }
-        ```
-    -   ```typescript
-        {
-        	statusCode: 404,
-        	error: 'Not found',
-        	messages: ['User not found'],
-        }
-        ```
+-   A list of Invitation objects ([Invitation](#invitation))
+
+## Get list of friend invitation received by an user
+
+```typescript
+GET /api/v1/user/friend/invite/receive
+authorization Bearer <token>
+```
+
+### Return
+
+-   A list of Invitation objects ([Invitation](#invitation))
 
 ### **Ban user**
 
