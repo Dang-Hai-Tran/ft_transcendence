@@ -4,6 +4,7 @@ from backendApi.models import BannedUser, Friendship, MutedUser, User
 from backendApi.serializers.banned_user import BannedUserSerializer
 from backendApi.serializers.friendship import FriendshipSerializer
 from backendApi.serializers.muted_user import MutedUserSerializer
+from backendApi.serializers.user import UserSerializer
 from django.db.models import Q
 from django.utils.dateparse import parse_date
 from django_filters.rest_framework import DjangoFilterBackend
@@ -114,10 +115,16 @@ class FriendshipViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["get"])
     def listFriends(self, request):
         user = request.user
-        friends = Friendship.objects.filter(
+        friendships = Friendship.objects.filter(
             Q(sender=user) | Q(receiver=user), status="accepted"
         )
-        serializer = self.get_serializer(friends, many=True)
+        friends = []
+        for friendship in friendships:
+            if friendship.sender == user:
+                friends.append(friendship.receiver)
+            else:
+                friends.append(friendship.sender)
+        serializer = UserSerializer(friends, many=True)
         return Response(serializer.data, status=200)
 
     # Ban a user to send friend invitation

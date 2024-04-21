@@ -2,13 +2,32 @@ from rest_framework import serializers
 from ..models import User, Otp
 import pyotp
 
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = "__all__"
-        read_only_fields = ['id','is_staff', 'is_superuser', 'created_at', 'updated_at']
+        fields = [
+            "id",
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+            "level",
+            "status",
+            "avatarPath",
+            "last_login",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "is_staff",
+            "is_superuser",
+            "created_at",
+            "updated_at",
+        ]
         extra_kwargs = {
-            'password': {'write_only': True},
+            "password": {"write_only": True},
         }
 
     def create(self, validated_data):

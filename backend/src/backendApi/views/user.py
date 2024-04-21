@@ -13,6 +13,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from datetime import timedelta
 from django.core.files.storage import default_storage
 from django.http import FileResponse
+from datetime import datetime
 
 from ..models import User
 from ..models import Otp
@@ -49,6 +50,7 @@ class UserViewSet(viewsets.ModelViewSet):
             if not instance.verifyOtp(otp):
                 return Response({"error": "Invalid OTP"}, status=400)
         user.status = "online"
+        user.last_login = datetime.now()
         user.save()
         refresh = RefreshToken.for_user(user)
         return Response(

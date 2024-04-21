@@ -698,7 +698,7 @@ authorization Bearer <token>
 
 ## Get list of friends of a user
 
-Return a list of Friendship objects ([Friendship](#friendship)) where the status field is 'accepted'.
+Return a list of User objects ([User](#user)) where the status field in (Friendship](#friendship) is 'accepted'.
 
 ```typescript
 GET /api/v1/user/friendship
@@ -707,7 +707,7 @@ authorization Bearer <token>
 
 ### Return
 
--   A list of Friendship objects ([Friendship](#friendship))
+-   A list of User object ([User](#user))
 
 ## Ban user from sending a friend invitation
 
