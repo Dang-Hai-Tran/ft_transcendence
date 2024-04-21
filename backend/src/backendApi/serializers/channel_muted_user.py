@@ -13,6 +13,7 @@ class ChannelMutedUserSerializer(serializers.ModelSerializer):
             "channel_name",
             "muteduser_name",
             "until",
+            "mutedReason",
             "created_at",
             "updated_at",
         ]

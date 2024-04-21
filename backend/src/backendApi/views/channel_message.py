@@ -99,4 +99,4 @@ class ChannelMessageViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated]
         else:
             permission_classes = [IsAdminUser]
-        return [permission() for permission in permission_classes]
+        return super().get_permissions()

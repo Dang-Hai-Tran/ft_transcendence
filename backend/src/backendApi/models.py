@@ -1,8 +1,9 @@
 from collections.abc import Iterable
-from django.db import models
-from django.contrib.auth.models import AbstractUser, PermissionsMixin
-from backendApi.hash import hash_password, verify_password
+
 import pyotp
+from backendApi.hash import hash_password, verify_password
+from django.contrib.auth.models import AbstractUser, PermissionsMixin
+from django.db import models
 
 
 class User(AbstractUser, PermissionsMixin):
@@ -12,7 +13,7 @@ class User(AbstractUser, PermissionsMixin):
     level = models.IntegerField(default=1)
     statusChoices = [("online", "Online"), ("offline", "Offline")]
     status = models.CharField(max_length=100, choices=statusChoices, default="offline")
-    avatarPath = models.CharField(max_length=100, default="", blank=True)
+    avatarPath = models.CharField(max_length=100, default=None, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -57,6 +58,7 @@ class ChannelBannedUser(models.Model):
         Channel, on_delete=models.CASCADE, related_name="channelbanneduser_channel"
     )
     until = models.DateField()
+    bannedReason = models.TextField(default=None, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -72,6 +74,7 @@ class ChannelMutedUser(models.Model):
         Channel, on_delete=models.CASCADE, related_name="channelmuteduser_channel"
     )
     until = models.DateField()
+    mutedReason = models.TextField(default=None, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -104,16 +107,16 @@ class Game(models.Model):
     visibility = models.CharField(choices=visibilityChoices, default="public")
     modeChoices = [("normal", "Normal"), ("tournament", "Tournament")]
     mode = models.CharField(choices=modeChoices, default="normal")
-    statusChoices = [("in progressing", "In progressing"), ("end", "End")]
-    status = models.CharField(choices=statusChoices, default="in progressing")
+    statusChoices = [("progressing", "Progressing"), ("end", "End")]
+    status = models.CharField(choices=statusChoices, default="progressing")
     maxScore = models.IntegerField()
     users = models.ManyToManyField(User, related_name="game_users")
     winner = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="game_winner"
     )
-    winnerScore = models.IntegerField(null=True, blank=True)
+    winnerScore = models.IntegerField(default=None, null=True, blank=True)
     loser = models.ForeignKey(User, on_delete=models.CASCADE, related_name="game_loser")
-    loserScore = models.IntegerField(null=True, blank=True)
+    loserScore = models.IntegerField(default=None, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -122,9 +125,13 @@ class Game(models.Model):
 
 
 class GameScore(models.Model):
-    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name="gamescore_game")
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="gamescore_user")
-    score = models.IntegerField()
+    game = models.ForeignKey(
+        Game, on_delete=models.CASCADE, related_name="gamescore_game"
+    )
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="gamescore_user"
+    )
+    score = models.IntegerField(default=None, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -139,7 +146,7 @@ class UserMessage(models.Model):
     receiver = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="usermessage_receiver"
     )
-    content = models.TextField(default="")
+    content = models.TextField(default=None, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -151,7 +158,7 @@ class ChannelMessage(models.Model):
     receiver = models.ForeignKey(
         Channel, on_delete=models.CASCADE, related_name="channelmessage_receiver"
     )
-    content = models.TextField(default="")
+    content = models.TextField(default=None, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -173,7 +180,7 @@ class Friendship(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.sender} : {self.receiver}"
+        return f"Friendship between {self.sender.username} and {self.receiver.username}"
 
 
 class MutedUser(models.Model):
@@ -184,9 +191,12 @@ class MutedUser(models.Model):
         User, on_delete=models.CASCADE, related_name="muteduser_receiver"
     )
     until = models.DateField()
-    mutedReason = models.TextField(blank=True, default="")
+    mutedReason = models.TextField(default=None, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"MutedUser between {self.sender.username} and {self.receiver.username}"
 
 
 class BannedUser(models.Model):
@@ -197,9 +207,12 @@ class BannedUser(models.Model):
         User, on_delete=models.CASCADE, related_name="banneduser_receiver"
     )
     until = models.DateField()
-    bannedReason = models.TextField(blank=True, default="")
+    bannedReason = models.TextField(default=None, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"BannedUser between {self.sender.username} and {self.receiver.username}"
 
 
 class Otp(models.Model):
@@ -216,3 +229,6 @@ class Otp(models.Model):
     def verifyOtp(self, otpVerified):
         totp = pyotp.TOTP(self.secretKey)
         return totp.verify(otpVerified, valid_window=60)
+    
+    def __str__(self):
+        return f"Otp for {self.user.username}"

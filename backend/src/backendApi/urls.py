@@ -1,12 +1,13 @@
 # Import dependencies
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .views.user import UserViewSet
+
 from .views.channel import ChannelViewSet
-from .views.user_message import UserMessageViewSet
-from .views.otp import OtpViewSet
 from .views.channel_message import ChannelMessageViewSet
 from .views.friendship import FriendshipViewSet
+from .views.otp import OtpViewSet
+from .views.user import UserViewSet
+from .views.user_message import UserMessageViewSet
 
 urlpatterns = [
     # Tokens
@@ -51,17 +52,11 @@ urlpatterns = [
     path("auth/otp", OtpViewSet.as_view({"get": "getOtpCode"})),
     path("auth/otp/check", OtpViewSet.as_view({"post": "checkOtpCode"})),
     path("auth/otp/qr-code", OtpViewSet.as_view({"get": "getQRcode"})),
-    path("auth/otp/status", OtpViewSet.as_view({"post": "postOtpStatus", "get": "getOtpStatus"})),
+    path(
+        "auth/otp/status",
+        OtpViewSet.as_view({"post": "postOtpStatus", "get": "getOtpStatus"}),
+    ),
     path("auth/otp/switch", OtpViewSet.as_view({"post": "switchOtpStatus"})),
-    path(
-        "user-messages", UserMessageViewSet.as_view({"get": "list", "post": "create"})
-    ),
-    path(
-        "user-messages/<int:pk>",
-        UserMessageViewSet.as_view(
-            {"get": "retrieve", "put": "update", "delete": "destroy"}
-        ),
-    ),
     # Channels
     path("channels", ChannelViewSet.as_view({"get": "list", "post": "create"})),
     path(
@@ -81,11 +76,8 @@ urlpatterns = [
     ),
     path("channel/list", ChannelViewSet.as_view({"get": "listMyChannels"})),
     path(
-        "channel/<int:channel_id>/update",
-        ChannelViewSet.as_view({"put": "updateMyChannel"}),
-    ),
-    path(
-        "channel/<int:channel_id>/get", ChannelViewSet.as_view({"get": "getMyChannel"})
+        "channel/<int:channel_id>",
+        ChannelViewSet.as_view({"get": "getMyChannel", "put": "updateMyChannel"}),
     ),
     path(
         "channel/<int:channel_id>/admin/add",
@@ -172,5 +164,48 @@ urlpatterns = [
             }
         ),
     ),
-    path("user/friendship/invite", FriendshipViewSet.as_view({"post": "invite"})),
+    path("user/friendship/invite", FriendshipViewSet.as_view({"post": "inviteFriend"})),
+    path(
+        "user/friendship/<int:friendship_id>/status",
+        FriendshipViewSet.as_view({"put": "updateFriendshipStatus"}),
+    ),
+    path(
+        "user/friendship/sent",
+        FriendshipViewSet.as_view({"get": "listFriendshipsSent"}),
+    ),
+    path(
+        "user/friendship/received",
+        FriendshipViewSet.as_view({"get": "listFriendshipsReceived"}),
+    ),
+    path("user/friendship/ban", FriendshipViewSet.as_view({"post": "banUser"})),
+    path("user/friendship/unban", FriendshipViewSet.as_view({"post": "unbanUser"})),
+    path("user/friendship/mute", FriendshipViewSet.as_view({"post": "muteUser"})),
+    path("user/friendship/unmute", FriendshipViewSet.as_view({"post": "unmuteUser"})),
+    # User messsage
+    path(
+        "user/friend/messages", UserMessageViewSet.as_view({"get": "list", "post": "create"})
+    ),
+    path(
+        "user/friend/messages/<int:pk>",
+        UserMessageViewSet.as_view(
+            {
+                "get": "retrieve",
+                "put": "update",
+                "patch": "partial_update",
+                "delete": "destroy",
+            }
+        ),
+    ),
+    path(
+        "user/friend/message",
+        UserMessageViewSet.as_view({"post": "sendMessageToFriend"}),
+    ),
+    path(
+        "user/friend/<int:friend_id>/message/last",
+        UserMessageViewSet.as_view({"get": "getMessagesToFriend"}),
+    ),
+    path(
+        "user/friend/<int:friend_id>/message/<int:usermessage_id>",
+        UserMessageViewSet.as_view({"put": "updateMessageContentToFriend"}),
+    ),
 ]

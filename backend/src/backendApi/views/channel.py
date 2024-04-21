@@ -229,18 +229,27 @@ class ChannelViewSet(viewsets.ModelViewSet):
         if channel.admins.filter(id=user.id).exists():
             return Response({"error": "Can't ban an admin"}, status=400)
         # Check if the user is banned from the channel
+        banned_user = None
         if ChannelBannedUser.objects.filter(channel=channel, user=user).exists():
-            return Response({"error": "User is already banned"}, status=400)
+            banned_user = ChannelBannedUser.objects.get(channel=channel, user=user)
+            if banned_user.until >= datetime.now().date():
+                return Response({"error": "User is already banned"}, status=400)
         until_string = request.data.get("until", None)
+        reason = request.data.get("bannedReason", None)
         if not until_string:
             until = datetime.max.date()
         else:
             until = parse_date(until_string)
         if channel.members.filter(id=user.id).exists():
             channel.members.remove(user)
-        banned_user = ChannelBannedUser.objects.create(
-            channel=channel, user=user, until=until
-        )
+        if not banned_user:
+            banned_user = ChannelBannedUser.objects.create(
+                channel=channel, user=user, until=until, bannedReason=reason
+            )
+        else:
+            banned_user.until = until
+            banned_user.bannedReason = reason
+            banned_user.save()
         serializer = ChannelBannedUserSerializer(banned_user)
         return Response(serializer.data, status=200)
 
@@ -261,7 +270,11 @@ class ChannelViewSet(viewsets.ModelViewSet):
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=404)
         # Check if the user is banned from the channel
-        if not ChannelBannedUser.objects.filter(channel=channel, user=user).exists():
+        if (
+            not ChannelBannedUser.objects.filter(channel=channel, user=user).exists()
+            or ChannelBannedUser.objects.get(channel=channel, user=user).until
+            < datetime.now().date()
+        ):
             return Response({"error": "User is not banned"}, status=400)
         banned_user = ChannelBannedUser.objects.get(channel=channel, user=user)
         banned_user.until = datetime.min.date()
@@ -290,16 +303,25 @@ class ChannelViewSet(viewsets.ModelViewSet):
         if channel.owner == user or channel.admins.filter(id=user.id).exists():
             return Response({"error": "Can't mute an admin or owner"}, status=400)
         # Check if the user is muted
+        muted_user = None
         if ChannelMutedUser.objects.filter(channel=channel, user=user).exists():
-            return Response({"error": "User is already muted"}, status=400)
+            muted_user = ChannelMutedUser.objects.get(channel=channel, user=user)
+            if muted_user.until >= datetime.now().date():
+                return Response({"error": "User is already muted"}, status=400)
         until_string = request.data.get("until", None)
+        reason = request.data.get("mutedReason", None)
         if not until_string:
             until = datetime.max.date()
         else:
             until = parse_date(until_string)
-        muted_user = ChannelMutedUser.objects.create(
-            channel=channel, user=user, until=until
-        )
+        if not muted_user:
+            muted_user = ChannelMutedUser.objects.create(
+                channel=channel, user=user, until=until, mutedReason=reason
+            )
+        else:
+            muted_user.until = until
+            muted_user.mutedReason = reason
+            muted_user.save()
         serializer = ChannelMutedUserSerializer(muted_user)
         return Response(serializer.data, status=200)
 
@@ -321,7 +343,11 @@ class ChannelViewSet(viewsets.ModelViewSet):
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=404)
         # Check if the user is muted
-        if not ChannelMutedUser.objects.filter(channel=channel, user=user).exists():
+        if (
+            not ChannelMutedUser.objects.filter(channel=channel, user=user).exists()
+            or ChannelMutedUser.objects.get(channel=channel, user=user).until
+            < datetime.now().date()
+        ):
             return Response({"error": "User is not muted"}, status=400)
         muted_user = ChannelMutedUser.objects.filter(channel=channel, user=user)
         muted_user.until = datetime.min.date()

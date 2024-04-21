@@ -13,6 +13,7 @@ class ChannelBannedUserSerializer(serializers.ModelSerializer):
             "channel_name",
             "banneduser_name",
             "until",
+            "bannedReason",
             "created_at",
             "updated_at",
         ]

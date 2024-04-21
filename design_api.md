@@ -6,47 +6,116 @@
 
 ## Per modules
 
+-   **Tokens**
+
+    -   [Create new Bearer token](#create-new-bearer-token)
+    -   [Refresh access token](#refresh-access-token)
+
 -   **Auth**
+
     -   [Login](#login)
     -   [Register](#register)
     -   [Logout](#logout)
     -   [Switch OTP status](#switch-otp-status)
+    -   [Post OTP status](#post-otp-status)
     -   [Get OTP status](#get-otp-status)
     -   [Get OTP code](#get-otp-code)
     -   [Check OTP code](#check-otp-code)
-    -   [Get OTP QR code](#get-otp-qr-code)
+    -   [Get an OTP QR code](#get-otp-qr-code)
+
 -   **Users**
-    -   [Get informations about yourself](#get-my-profile)
+
+    -   [Get information about yourself](#get-my-profile)
     -   [Update my profile](#update-my-profile)
-    -   [Get a profile avatar](#get-a-profile-avatar)
-    -   [Upload a profile avatar](#upload-a-profile-avatar)
+    -   [Get my profile avatar](#get-my-profile-avatar)
+    -   [Upload my profile avatar](#upload-my-profile-avatar)
+
 -   **Channels**
+
     -   [Create a channel](#create-channel)
-    -   [List channels see by user](#list-channels-by-user)
-    -   [Get a channel by user](#get-a-channel-by-user)
+    -   [List channels are seen by user](#list-channels-by-user)
+    -   [Get a channel are seen by user](#get-a-channel-by-user)
     -   [Update a channel by owner](#update-channel-by-owner)
     -   [Add new admin by owner](#add-new-admin-by-owner)
     -   [Remove admin by owner](#remove-admin-by-owner)
     -   [Join a channel](#join-a-channel)
     -   [Leave a channel](#leave-a-channel)
-    -   [Ban user in channel by admin](#ban-user-in-channel-by-admin)
-    -   [Unban user in channel by admin](#unban-user-in-channel-by-admin)
-    -   [Mute user in channel by admin](#mute-user-in-channel-by-admin)
-    -   [Unmute user in channel by admin](#unmute-user-in-channel-by-admin)
-    -   [Invite user in channel by admin](#invite-user-in-channel-by-admin)
-    -   [Update user's invitation status](#update-users-invitation-status)
-    -   [Send message in channel](#send-message-in-channel)
-    -   [Get list user's messages in channel](#get-list-users-messages-in-channel)
+    -   [Ban a user in a channel by admin](#ban-a-user-in-channel-by-admin)
+    -   [Unban a user in a channel by admin](#unban-a-user-in-channel-by-admin)
+    -   [Mute user in a channel by admin](#mute-user-in-channel-by-admin)
+    -   [Unmute user in a channel by admin](#unmute-user-in-channel-by-admin)
+    -   [Invite user in a channel by admin](#invite-user-in-channel-by-admin)
+    -   [Update the user's invitation status](#update-users-invitation-status)
+    -   [Send a message in a channel](#send-message-in-channel)
+    -   [Get a list of user messages in a channel](#get-list-users-messages-in-channel)
+    -   [Update the content of a message](#update-the-content-of-a-message)
+    -   [Get a list last 50 messages in a channel](#get-list-last-50-messages-in-channel)
+
+-   **Friendship**
+
+    -   [Invite a user to be a friend](#invite-user-to-be-friend)
+    -   [Update the status of user's invitation](#update-status-of-users-invitation)
+    -   [Get a list of friend invitations sent by a user](#get-list-of-friend-invitations-sent-by-an-user)
+    -   [Get a list of friend invitations received by a user](#get-list-of-friend-invitations-received-by-an-user)
+    -   [Ban user from sending a friend invitation](#ban-user-from-sending-a-friend-invitation)
+    -   [Unban user from sending a friend invitation](#unban-user-from-sending-a-friend-invitation)
+    -   [Mute user from sending private messages](#mute-user-from-sending-private-messages)
+    -   [Unmute user from sending private messages](#unmute-user-from-sending-private-messages)
+
+-   **User Messages**
+
+    -   [Send a message to a friend](#send-message-to-a-friend)
+    -   [Get list of last 50 messages sent to a friend](#get-list-last-50-messages-sent-to-a-friend)
     -   [Update the content of a message](#update-the-content-of-a-message)
 
 -   **Games**
 
 # Authentication
 
-Every routes, except `/register`, `/login` and `/otp/status` you need to provide an Bearer token in the request headers.
+For every route, except `/register`, `/login` and `/otp/status` you need to provide a Bearer token in the request headers.
 
 ```
 authorization: Bearer <token>
+```
+
+## Create new Bearer token
+
+Create new access token and refresh token for a user
+
+```typescript
+POST /api/v1/token
+{
+	username: string,
+	password: string,
+}
+```
+
+### Return
+
+```typescript
+{
+	refresh: string,
+	access: string
+}
+```
+
+## Refresh access token
+
+When the access token expires, you can use the refresh token to get a new access token.
+
+```typescript
+POST / api / v1 / token / refresh;
+{
+    refresh: string;
+}
+```
+
+### Return
+
+```typescript
+{
+    access: string;
+}
 ```
 
 ## Login
@@ -129,7 +198,7 @@ Switch OTP status: true -> false, false -> true
 
 ## Post OTP status
 
-Anyone can get OTP status with username and password
+Anyone can get OTP status with a username and password
 
 ```typescript
 POST /api/v1/auth/otp/status
@@ -146,7 +215,6 @@ POST /api/v1/auth/otp/status
     otpStatus: boolean;
 }
 ```
-
 
 ## Get OTP status
 
@@ -238,7 +306,7 @@ authorization Bearer <token>
 
 -   The updated user profile ([User](#user))
 
-## Get a profile avatar
+## Get my profile avatar
 
 ```
 GET /api/v1/profile/me/avatar
@@ -251,7 +319,7 @@ authorization Bearer <token>
 
 Retrieve the user's profile avatar from backend storage
 
-## Upload a profile avatar
+## Upload my profile avatar
 
 ```typescript
 POST /api/v1/profile/me/avatar
@@ -296,7 +364,7 @@ authorization Bearer <token>
 }
 ```
 
-Create a new channel by user. The user will be the owner of the channel and be added to the list of admins and members
+Create a new channel for a user. The user will be the owner of the channel and be added to the list of admins and members
 
 ## List channels by user
 
@@ -314,7 +382,7 @@ List every channel the user can see: public channels, channels in which the user
 ## Get a channel by user
 
 ```
-GET /api/v1/channel/get/<channel_id>
+GET /api/v1/channel/<channel_id>
 authorization Bearer <token>
 ```
 
@@ -324,10 +392,10 @@ authorization Bearer <token>
 
 ## Update channel by owner
 
-Only channel's owner can update the channel1
+Only the channel's owner can update the channel1
 
 ```typescript
-PUT /api/v1/channel/update/<channel_id>
+PUT /api/v1/channel/<channel_id>
 authorization Bearer <token>
 {
 	"name": string, // optionnal
@@ -340,11 +408,11 @@ authorization Bearer <token>
 
 -   The updated channel object ([Channel](#channel))
 
-Updata name, visibility or password of a channel by admin
+Update the name, visibility or password of a channel by an admin
 
 ## Add new admin by owner
 
-Only channel's owner can add user as admin and the user must be a member of the channel and isn't already an admin of the channel
+Only the channel's owner can add a user as an admin and the user must be a member of the channel and isn't already an admin of the channel
 
 ```typescript
 POST /api/v1/channel/<channel_id>/admin/add
@@ -364,7 +432,7 @@ authorization Bearer <token>
 
 ## Remove admin by owner
 
-Only channel's owner can remove user as admin. The user must be a admin of the channel
+Only the channel's owner can remove a user as an admin. The user must be an admin of the channel
 
 ```typescript
 POST /api/v1/channel/<channel_id>/admin/remove
@@ -410,10 +478,11 @@ authorization Bearer <token>
 
 -   The leaved channel object ([Channel](#channel))
 
-## Ban user in channel by admin
+## Ban a user in channel by admin
 
 You must be an admin to ban a user from a channel. If this user is actually a member of the channel, he will be removed
-from the list of members. You can't ban an admin or owner of the channel.
+from the list of members. You can't ban an admin or owner of the channel. If until is not provided, until will be set to
+the Max Date.
 
 ```typescript
 POST /api/v1/channel/<channel_id>/member/ban
@@ -421,6 +490,7 @@ authorization Bearer <token>
 {
 	"username": string
 	"until": string // ISO date format YYYY-MM-DD // optional
+	"reason": string // optional
 }
 ```
 
@@ -428,10 +498,10 @@ authorization Bearer <token>
 
 -   The channel banned user object ([ChannelBannedUser](#channelbanneduser))
 
-## Unban user in channel by admin
+## Unban a user in channel by admin
 
-You must be an admin to unban a user from a channel. If the user isn't in banned list, error will be raised. The record
-will be removed from ChannelBannedUser table.
+You must be an admin to unban a user from a channel. If the user isn't on the banned list, an error will be raised. The
+until field will be update to the Min Date.
 
 ```typescript
 POST /api/v1/channel/<channel_id>/member/unban
@@ -445,9 +515,10 @@ authorization Bearer <token>
 
 -   The updated banned user object ([ChannelBannedUser](#channelbanneduser))
 
-## Mute user in channel by admin
+## Mute user in the channel by admin
 
-You must be an admin to mute a user from a channel. Owner and admin can't be muted.
+You must be an admin to mute a user from a channel. The owner and admin can't be muted. If until is not provided, until
+will be set to the Max Date.
 
 ```typescript
 POST /api/v1/channel/<channel_id>/member/mute
@@ -455,6 +526,7 @@ authorization Bearer <token>
 {
 	"username": string
 	"until": string // ISO date format YYYY-MM-DD // optional
+	"reason": string // optional
 }
 ```
 
@@ -464,8 +536,8 @@ authorization Bearer <token>
 
 ## Unmute user in channel by admin
 
-You must be an admin to unmute a user from a channel. If the user isn't muted, error will be raised. The record will be
-removed from ChannelMutedUser table.
+You must be an admin to unmute a user from a channel. If the user isn't muted, error will be raised. The until field will
+be update to the Min Date.
 
 ```typescript
 POST /api/v1/channel/<channel_id>/member/unmute
@@ -530,6 +602,8 @@ authorization Bearer <token>
 
 ## Get list user's messages in channel
 
+Display a list of messages in channel sent by the user
+
 ```typescript
 GET /api/v1/channel/<channel_id>/message
 authorization Bearer <token>
@@ -566,13 +640,13 @@ authorization Bearer <token>
 
 -   A list of ChannelMessage objects ([ChannelMessage](#channelmessage))
 
-## Invite user tobe friend
+## Invite user to be friend
 
 If the user is already friend, error will be raised. If the user is banned from another user, error will be raised.
 Otherwise a new friendship will be created.
 
 ```typescript
-POST /api/v1/user/friend/invite
+POST /api/v1/user/friendship/invite
 authorization Bearer <token>
 {
 	"username": string
@@ -588,7 +662,7 @@ authorization Bearer <token>
 Only receiver of the invitation can update status of user's invitation.
 
 ```typescript
-PUT /api/v1/user/friend/status/<friendship_id>
+PUT /api/v1/user/friendship/<friendship_id>/status
 authorization Bearer <token>
 {
 	"status": string // 'accepted' | 'pending' | 'rejected'
@@ -599,10 +673,10 @@ authorization Bearer <token>
 
 -   A updated Friendship object ([Friendship](#friendship))
 
-## Get list of friend invitation sent from an user
+## Get list of friend invitations sent by a user
 
 ```typescript
-GET /api/v1/user/friend/invite/send
+GET /api/v1/user/friendship/sent
 authorization Bearer <token>
 ```
 
@@ -610,10 +684,10 @@ authorization Bearer <token>
 
 -   A list of Invitation objects ([Invitation](#invitation))
 
-## Get list of friend invitation received by an user
+## Get list of friend invitations received by a user
 
 ```typescript
-GET /api/v1/user/friend/invite/receive
+GET /api/v1/user/friendship/received
 authorization Bearer <token>
 ```
 
@@ -621,144 +695,114 @@ authorization Bearer <token>
 
 -   A list of Invitation objects ([Invitation](#invitation))
 
-### **Ban user**
+## Ban user from sending a friend invitation
 
-#### Input
+If the user is already banned, error will be raised. Otherwise a new bannedUser will be created or updated. If the until
+field is not set, it will be set to the Max Date.
 
 ```typescript
-message: `users_ban`
-payload: {
-	id: number, // Id of the user to ban
-	until: string, // ISO Date of the un-ban
+POST /api/v1/user/friendship/ban
+authorization Bearer <token>
+{
+	"username": string,
+	"until": string, // YYYY-MM-DD // optional
+	"reason": string // optional
 }
 ```
 
-#### Return
+### Return
 
--   The new user banned object ([BannedUser](#banneduser))
--   A [WSResponse](#wsresponse)
-    -   ```typescript
-        {
-        	statusCode: 400,
-        	error: 'Bad request',
-        	messages: string[] // describing malformed payload
-        }
-        ```
-    -   ```typescript
-        {
-        	statusCode: 404,
-        	error: 'Not found',
-        	messages: ['User not found'],
-        }
-        ```
+-   A BannedUser object ([BannedUser](#banneduser))
 
-### **Mute user**
+## Unban user from sending a friend invitation
 
-#### Input
+If the user is not banned, error will be raised. If the until field is not set, it will be set to the Min Date.
 
 ```typescript
-message: `users_mute`
-payload: {
-	id: number, // Id of the user to ban
-	until: string, // ISO Date of the un-ban
+POST /api/v1/user/friendship/unban
+authorization Bearer <token>
+{
+	"username": string
 }
 ```
 
-#### Return
+### Return
 
--   The new user muted object ([MutedUser](#muteduser))
--   A [WSResponse](#wsresponse)
-    -   ```typescript
-        {
-        	statusCode: 400,
-        	error: 'Bad request',
-        	messages: string[] // describing malformed payload
-        }
-        ```
-    -   ```typescript
-        {
-        	statusCode: 404,
-        	error: 'Not found',
-        	messages: ['User not found'],
-        }
-        ```
+-   An updated bannedUser object ([BannedUser](#banneduser))
 
-### **Send a message**
-
-#### Input
+## Mute user from sending private messages
 
 ```typescript
-message: `users_sendMessage`
-payload: {
-	id: number, // Id of a friend
-	until: string, // Message to send
+POST /api/v1/user/friendship/mute
+authorization Bearer <token>
+{
+	"username": string,
+	"until": string, // YYYY-MM-DD // optional
+	"reason": string // optional
 }
 ```
 
-#### Return
+### Return
 
--   The new message object ([UserMessage](#usermessage))
--   A [WSResponse](#wsresponse)
-    -   ```typescript
-        {
-        	statusCode: 400,
-        	error: 'Bad request',
-        	messages: string[] // describing malformed payload
-        }
-        ```
-    -   ```typescript
-        {
-        	statusCode: 403,
-        	error: 'Forbidden',
-        	messages: ['You can only send messages to friends'],
-        			| ['You are muted by this user']
-        }
-        ```
-    -   ```typescript
-        {
-        	statusCode: 404,
-        	error: 'Not found',
-        	messages: ['User not found'],
-        }
-        ```
+-   A MutedUser object ([MutedUser](#muteduser))
 
-### **Get messages**
-
-#### Input
+## Unmute user from sending private messages
 
 ```typescript
-message: `users_getMessages`
-payload: {
-	id: number, // Id of a friend
-	before: string, // ISO date
+POST /api/v1/user/friendship/unmute
+authorization Bearer <token>
+{
+	"username": string
 }
 ```
 
-#### Return
+### Return
 
--   An array of messages object ([UserMessage[]](#usermessage))
--   A [WSResponse](#wsresponse)
-    -   ```typescript
-        {
-        	statusCode: 400,
-        	error: 'Bad request',
-        	messages: string[] // describing malformed payload
-        }
-        ```
-    -   ```typescript
-        {
-        	statusCode: 403,
-        	error: 'Forbidden',
-        	messages: ['You can only get messages from friends'],
-        }
-        ```
-    -   ```typescript
-        {
-        	statusCode: 404,
-        	error: 'Not found',
-        	messages: ['User not found'],
-        }
-        ```
+-   A updated MutedUser object ([MutedUser](#muteduser))
+
+## Send a message to a friend
+
+Only friend can send a message to a friend
+
+```typescript
+POST /api/v1/user/friend/message
+authorization Bearer <token>
+{
+	"username": string,
+	"content": string
+}
+```
+
+### Return
+
+-   A UserMessage object ([UserMessage](#usermessage))
+
+## Get list of last 50 messages sent to a friend
+
+```typescript
+GET /api/v1/user/friend/<friend_id>/message/last
+authorization Bearer <token>
+```
+
+### Return
+
+-   A list of UserMessage objects ([UserMessage](#usermessage))
+
+## Update the content of a message
+
+Only the sender of the message and provide correctly friend_id and message_id can update the content of the message
+
+```typescript
+PUT /api/v1/user/friend/<friend_id>/message/<message_id>
+authorization Bearer <token>
+{
+	"content": string
+}
+```
+
+### Return
+
+-   A updated UserMessage object ([UserMessage](#usermessage))
 
 ## Games
 
