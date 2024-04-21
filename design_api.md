@@ -50,6 +50,7 @@
     -   [Get a list of user messages in a channel](#get-list-users-messages-in-channel)
     -   [Update the content of a message](#update-the-content-of-a-message)
     -   [Get a list last 50 messages in a channel](#get-list-last-50-messages-in-channel)
+    -   [Get list of friends of a user](#get-list-of-friends-of-a-user)
 
 -   **Friendship**
 
@@ -694,6 +695,19 @@ authorization Bearer <token>
 ### Return
 
 -   A list of Invitation objects ([Invitation](#invitation))
+
+## Get list of friends of a user
+
+Return a list of Friendship objects ([Friendship](#friendship)) where the status field is 'accepted'.
+
+```typescript
+GET /api/v1/user/friendship
+authorization Bearer <token>
+```
+
+### Return
+
+-   A list of Friendship objects ([Friendship](#friendship))
 
 ## Ban user from sending a friend invitation
 

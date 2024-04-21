@@ -1,4 +1,6 @@
-from backendApi.models import Friendship, User, UserMessage
+from datetime import datetime
+
+from backendApi.models import Friendship, MutedUser, User, UserMessage
 from backendApi.serializers.user_message import UserMessageSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
@@ -45,6 +47,19 @@ class UserMessageViewSet(viewsets.ModelViewSet):
         content = request.data.get("content", None)
         if not content:
             return Response({"error": "Content not provided"}, status=400)
+
+        # Check if sender is muted by receiver or receiver is muted by sender
+        if (
+            MutedUser.objects.filter(
+                sender=receiver, receiver=sender, until__gte=datetime.now().date()
+            ).exists()
+            or MutedUser.objects.filter(
+                sender=sender, receiver=receiver, until__gte=datetime.now().date()
+            ).exists()
+        ):
+            return Response(
+                {"error": "Sender or receiver is muted by each other"}, status=400
+            )
         message = UserMessage.objects.create(
             sender=sender, receiver=receiver, content=content
         )

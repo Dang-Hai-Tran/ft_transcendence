@@ -150,11 +150,11 @@ urlpatterns = [
     ),
     # Friendship
     path(
-        "users/friendships",
+        "user/friendships",
         FriendshipViewSet.as_view({"get": "list", "post": "create"}),
     ),
     path(
-        "users/friendships/<int:pk>",
+        "user/friendships/<int:pk>",
         FriendshipViewSet.as_view(
             {
                 "get": "retrieve",
@@ -177,13 +177,15 @@ urlpatterns = [
         "user/friendship/received",
         FriendshipViewSet.as_view({"get": "listFriendshipsReceived"}),
     ),
+    path("user/friendship", FriendshipViewSet.as_view({"get": "listFriends"})),
     path("user/friendship/ban", FriendshipViewSet.as_view({"post": "banUser"})),
     path("user/friendship/unban", FriendshipViewSet.as_view({"post": "unbanUser"})),
     path("user/friendship/mute", FriendshipViewSet.as_view({"post": "muteUser"})),
     path("user/friendship/unmute", FriendshipViewSet.as_view({"post": "unmuteUser"})),
     # User messsage
     path(
-        "user/friend/messages", UserMessageViewSet.as_view({"get": "list", "post": "create"})
+        "user/friend/messages",
+        UserMessageViewSet.as_view({"get": "list", "post": "create"}),
     ),
     path(
         "user/friend/messages/<int:pk>",
