@@ -1,22 +1,17 @@
-from django.shortcuts import render
-from rest_framework import viewsets
-from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.response import Response
-from rest_framework.decorators import action
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.token_blacklist.models import (
-    OutstandingToken,
-    BlacklistedToken,
-)
-from rest_framework_simplejwt.exceptions import TokenError
-from datetime import timedelta
+from backendApi.hash import verify_password
 from django.core.files.storage import default_storage
 from django.http import FileResponse
-from datetime import datetime
+from django.shortcuts import render
+from django.utils import timezone
+from django.contrib.auth import authenticate
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
 
-from ..models import User
-from ..models import Otp
+from ..models import Otp, User
 from ..serializers.user import UserSerializer
 
 
@@ -38,10 +33,9 @@ class UserViewSet(viewsets.ModelViewSet):
         username = request.data.get("username")
         password = request.data.get("password")
         user = User.objects.get(username=username)
+        user = authenticate(request, username=username, password=password)
         if user is None:
-            return Response({"error": "User not found"}, status=404)
-        if not user.check_password(password):
-            return Response({"error": "Password not matched"}, status=400)
+            return Response({"error": "Invalid username or password"}, status=400)
         instance = Otp.objects.get(user=user)
         if instance.otpStatus:
             if "otp" not in request.data:
@@ -50,7 +44,7 @@ class UserViewSet(viewsets.ModelViewSet):
             if not instance.verifyOtp(otp):
                 return Response({"error": "Invalid OTP"}, status=400)
         user.status = "online"
-        user.last_login = datetime.now()
+        user.last_login = timezone.now()
         user.save()
         refresh = RefreshToken.for_user(user)
         return Response(

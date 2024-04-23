@@ -58,6 +58,7 @@
     -   [Update the status of user's invitation](#update-status-of-users-invitation)
     -   [Get a list of friend invitations sent by a user](#get-list-of-friend-invitations-sent-by-an-user)
     -   [Get a list of friend invitations received by a user](#get-list-of-friend-invitations-received-by-an-user)
+    -   [Get list of friends of a user](#get-list-of-friends-of-a-user)
     -   [Ban user from sending a friend invitation](#ban-user-from-sending-a-friend-invitation)
     -   [Unban user from sending a friend invitation](#unban-user-from-sending-a-friend-invitation)
     -   [Mute user from sending private messages](#mute-user-from-sending-private-messages)
