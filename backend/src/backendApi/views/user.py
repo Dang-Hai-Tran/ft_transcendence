@@ -32,7 +32,6 @@ class UserViewSet(viewsets.ModelViewSet):
     def logIn(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
-        user = User.objects.get(username=username)
         user = authenticate(request, username=username, password=password)
         if user is None:
             return Response({"error": "Invalid username or password"}, status=400)
