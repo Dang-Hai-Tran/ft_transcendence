@@ -15,6 +15,9 @@ class UserMessageViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["sender", "receiver"]
 
+    def get_queryset(self):
+        return super().get_queryset().order_by("id")
+
     # Send message to friend view
     @action(detail=False, methods=["post"])
     def sendMessageToFriend(self, request):

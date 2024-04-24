@@ -19,6 +19,8 @@ class OtpViewSet(viewsets.ModelViewSet):
     queryset = Otp.objects.all()
     serializer_class = OtpSerializer
 
+    def get_queryset(self):
+        return super().get_queryset().order_by("id")
 
     @action(detail=False, methods=['get'])
     def getOtpStatus(self, request):

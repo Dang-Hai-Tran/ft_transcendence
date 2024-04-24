@@ -21,6 +21,9 @@ class UserViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = "__all__"
 
+    def get_queryset(self):
+        return super().get_queryset().order_by("id")
+
     @action(detail=False, methods=["post"])
     def register(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -108,6 +111,7 @@ class UserViewSet(viewsets.ModelViewSet):
             self.permission_classes = [AllowAny]
         elif self.action in [
             "list",
+            "retrieve",
             "logOut",
             "getMe",
             "updateMe",

@@ -14,6 +14,9 @@ class ChannelMessageViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = "__all__"
 
+    def get_queryset(self):
+        return super().get_queryset().order_by("id")
+
     # Create new message viewset. Only members can send messages
     @action(detail=False, methods=["post"])
     def createMessage(self, request, channel_id):

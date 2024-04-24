@@ -20,6 +20,9 @@ class FriendshipViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = "__all__"
 
+    def get_queryset(self):
+        return super().get_queryset().order_by("id")
+
     @action(detail=True, methods=["post"])
     def inviteFriend(self, request):
         sender = request.user

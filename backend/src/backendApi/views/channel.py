@@ -30,6 +30,9 @@ class ChannelViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = "__all__"
 
+    def get_queryset(self):
+        return super().get_queryset().order_by("id")
+
     # Create channel view. Each user can create a channel.
     @action(detail=False, methods=["post"])
     def createChannel(self, request):

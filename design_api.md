@@ -25,6 +25,8 @@
 
 -   **Users**
 
+    -   [List users](#list-users)
+    -   [Retrieve a user by id](#retrieve-a-user)
     -   [Get information about yourself](#get-my-profile)
     -   [Update my profile](#update-my-profile)
     -   [Get my profile avatar](#get-my-profile-avatar)
@@ -282,6 +284,32 @@ authorization Bearer <token>
 ### Return
 
 -   The OTP QR code ([QRCode](#qrcode)) type image/png
+
+## List users
+
+Return a list users registered in the system
+
+```typescript
+GET /api/v1/users
+authorization Bearer <token>
+```
+
+### Return
+
+-   A list of users ([User](#user))
+
+## Retrieve a user by id
+
+Return a specific user registered in the system by provided id
+
+```typescript
+GET /api/v1/users/<user_id>
+authorization Bearer <token>
+```
+
+### Return
+
+-   The user object ([User](#user))
 
 ## Get my profile
 
