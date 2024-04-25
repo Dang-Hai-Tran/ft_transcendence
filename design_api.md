@@ -52,7 +52,6 @@
     -   [Get a list of user messages in a channel](#get-list-users-messages-in-channel)
     -   [Update the content of a message](#update-the-content-of-a-message)
     -   [Get a list last 50 messages in a channel](#get-list-last-50-messages-in-channel)
-    -   [Get list of friends of a user](#get-list-of-friends-of-a-user)
 
 -   **Friendship**
 
