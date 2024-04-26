@@ -23,7 +23,7 @@ class User(AbstractUser, PermissionsMixin):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.id} : {self.username}"
+        return f"User : {self.id} : {self.username}"
 
 
 class Channel(models.Model):
@@ -47,7 +47,7 @@ class Channel(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.id} : {self.name}"
+        return f"Channel : {self.id} : {self.name}"
 
 
 class ChannelBannedUser(models.Model):
@@ -63,7 +63,7 @@ class ChannelBannedUser(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.channel.name} : {self.user.username}"
+        return f"ChannelBannedUser : {self.channel.name} : {self.user.username}"
 
 
 class ChannelMutedUser(models.Model):
@@ -79,7 +79,7 @@ class ChannelMutedUser(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.channel.name} : {self.user.username}"
+        return f"ChannelMutedUser : {self.channel.name} : {self.user.username}"
 
 
 class ChannelInvitedUser(models.Model):
@@ -102,41 +102,86 @@ class ChannelInvitedUser(models.Model):
         return f"{self.channel.name} : {self.user.username}"
 
 
-class Game(models.Model):
-    visibilityChoices = [("public", "Public"), ("private", "Private")]
-    visibility = models.CharField(choices=visibilityChoices, default="public")
-    modeChoices = [("normal", "Normal"), ("tournament", "Tournament")]
-    mode = models.CharField(choices=modeChoices, default="normal")
-    statusChoices = [("progressing", "Progressing"), ("end", "End")]
-    status = models.CharField(choices=statusChoices, default="progressing")
-    maxScore = models.IntegerField()
-    users = models.ManyToManyField(User, related_name="game_users")
-    winner = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="game_winner"
-    )
-    winnerScore = models.IntegerField(default=None, null=True, blank=True)
-    loser = models.ForeignKey(User, on_delete=models.CASCADE, related_name="game_loser")
-    loserScore = models.IntegerField(default=None, null=True, blank=True)
+class Tournament(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(null=True, blank=True, default=None)
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    max_players = models.PositiveIntegerField()
+    status_choices = [
+        ("upcoming", "Upcoming"),
+        ("ongoing", "Ongoing"),
+        ("completed", "Completed"),
+    ]
+    status = models.CharField(max_length=20, choices=status_choices)
+    players = models.ManyToManyField(User, related_name="tournament_players")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.id} : {self.mode} - {self.visibility} - {self.status}"
+        return self.name
+
+
+class Game(models.Model):
+    visibilityChoices = [("public", "Public"), ("private", "Private")]
+    visibility = models.CharField(choices=visibilityChoices, default="public")
+    modeChoices = [
+        ("classic", "Classic"),
+        ("ranked", "Ranked"),
+        ("tournament", "Tournament"),
+    ]
+    mode = models.CharField(choices=modeChoices, default="classic")
+    tournament = models.ForeignKey(
+        Tournament,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        default=None,
+        related_name="game_tournament",
+    )
+    statusChoices = [("progressing", "Progressing"), ("end", "End")]
+    status = models.CharField(choices=statusChoices, default="progressing")
+    maxScore = models.IntegerField(default=5)
+    players = models.ManyToManyField(User, related_name="game_players")
+    owner = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="game_owner",
+        null=True,
+        default=None,
+    )
+    winner = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="game_winner",
+        null=True,
+        default=None,
+    )
+    winnerScore = models.IntegerField(default=None, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Game : {self.id} : {self.mode} - {self.visibility} - {self.status}"
 
 
 class GameScore(models.Model):
     game = models.ForeignKey(
         Game, on_delete=models.CASCADE, related_name="gamescore_game"
     )
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="gamescore_user"
+    player = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="gamescore_player",
+        null=True,
+        default=None,
     )
     score = models.IntegerField(default=None, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.game.id} - {self.user.username}: {self.score}"
+        return f"GameScore : {self.game.id} - {self.player.username}: {self.score}"
 
 
 class UserMessage(models.Model):
@@ -162,6 +207,9 @@ class ChannelMessage(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return f"ChannelMessage : {self.sender.username} : {self.receiver.name}"
+
 
 class Friendship(models.Model):
     sender = models.ForeignKey(
@@ -180,7 +228,7 @@ class Friendship(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Friendship between {self.sender.username} and {self.receiver.username}"
+        return f"Friendship : {self.sender.username} : {self.receiver.username}"
 
 
 class MutedUser(models.Model):
@@ -196,7 +244,7 @@ class MutedUser(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"MutedUser between {self.sender.username} and {self.receiver.username}"
+        return f"MutedUser : {self.sender.username} and {self.receiver.username}"
 
 
 class BannedUser(models.Model):
@@ -212,7 +260,7 @@ class BannedUser(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"BannedUser between {self.sender.username} and {self.receiver.username}"
+        return f"BannedUser : {self.sender.username} and {self.receiver.username}"
 
 
 class Otp(models.Model):
@@ -229,6 +277,6 @@ class Otp(models.Model):
     def verifyOtp(self, otpVerified):
         totp = pyotp.TOTP(self.secretKey)
         return totp.verify(otpVerified, valid_window=60)
-    
+
     def __str__(self):
-        return f"Otp for {self.user.username}"
+        return f"Otp : {self.user.username} : {self.otpStatus}"
