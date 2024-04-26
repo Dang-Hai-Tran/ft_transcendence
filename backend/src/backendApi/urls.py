@@ -28,6 +28,7 @@ urlpatterns = [
             }
         ),
     ),
+    path("users/id/<str:username>", UserViewSet.as_view({"get": "getUserIdByUsername"})),
     # Auth
     path("auth/register", UserViewSet.as_view({"post": "register"})),
     path("auth/login", UserViewSet.as_view({"post": "logIn"})),

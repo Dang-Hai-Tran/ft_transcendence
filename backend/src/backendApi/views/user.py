@@ -106,6 +106,15 @@ class UserViewSet(viewsets.ModelViewSet):
         else:
             return FileResponse(default_storage.open("avatars/default.png", "rb"))
 
+    # Find user_id by username
+    @action(detail=True, methods=["get"])
+    def getUserIdByUsername(self, request, username):
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=404)
+        return Response({"user_id": user.id}, status=200)
+
     def get_permissions(self):
         if self.action in ["register", "logIn"]:
             self.permission_classes = [AllowAny]
@@ -117,6 +126,7 @@ class UserViewSet(viewsets.ModelViewSet):
             "updateMe",
             "getAvatarPicture",
             "uploadAvatarPicture",
+            "getUserIdByUsername",
         ]:
             self.permission_classes = [IsAuthenticated]
         else:

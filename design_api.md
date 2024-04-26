@@ -31,6 +31,7 @@
 
     -   [List users](#list-users)
     -   [Retrieve a user by id](#retrieve-a-user)
+    -   [Get user_id by username](#get-user-id-by-username)
     -   [Get information about yourself](#get-my-profile)
     -   [Update my profile](#update-my-profile)
     -   [Get my profile avatar](#get-my-profile-avatar)
@@ -317,6 +318,20 @@ authorization Bearer <token>
 ### Return
 
 -   The user object ([User](#user))
+
+## Get user id by username
+
+```typescript
+GET /api/v1/users/id/<str:username>
+authorization Bearer <token>
+```
+
+### Return
+
+```typescript
+{
+	user_id: integer
+}
 
 ## Get my profile
 
