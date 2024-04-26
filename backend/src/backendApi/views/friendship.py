@@ -91,7 +91,7 @@ class FriendshipViewSet(viewsets.ModelViewSet):
         status = request.data.get("status", None)
         if not status:
             return Response({"error": "Status not provided"}, status=400)
-        if status not in ["pending", "accepted", "declined"]:
+        if status not in ["pending", "accepted", "rejected"]:
             return Response({"error": "Invalid status"}, status=400)
         friendship.status = status
         friendship.save()

@@ -73,6 +73,7 @@ class ChannelSerializer(serializers.ModelSerializer):
         # Add the admins and members
         channel.admins.add(owner)
         channel.members.add(owner)
+        channel.save()
 
         return channel
 

@@ -1,7 +1,11 @@
 # Table of content
 
 -   [Authentication](#authentication)
+-   [Users](#users)
 -   [Channels](#channels)
+-   [Friendships](#friendship)
+-   [User Messages](#user-messages)
+-   [Games](#games)
 -   [Objects](#objects)
 
 ## Per modules
@@ -72,6 +76,7 @@
     -   [Update the content of a message](#update-the-content-of-a-message)
 
 -   **Games**
+    -   [Create a new game](#create-a-new-game)
 
 # Authentication
 
@@ -284,6 +289,8 @@ authorization Bearer <token>
 
 -   The OTP QR code ([QRCode](#qrcode)) type image/png
 
+# Users
+
 ## List users
 
 Return a list users registered in the system
@@ -427,9 +434,9 @@ Only the channel's owner can update the channel1
 PUT /api/v1/channel/<channel_id>
 authorization Bearer <token>
 {
-	"name": string, // optionnal
-	"visibility": 'public' | 'private', // optionnal
-	"password": string // optionnal
+	name: string, // optionnal
+	visibility: 'public' | 'private', // optionnal
+	password: string // optionnal
 }
 ```
 
@@ -447,7 +454,7 @@ Only the channel's owner can add a user as an admin and the user must be a membe
 POST /api/v1/channel/<channel_id>/admin/add
 authorization Bearer <token>
 {
-	"username": string
+	username: string
 }
 ```
 
@@ -467,7 +474,7 @@ Only the channel's owner can remove a user as an admin. The user must be an admi
 POST /api/v1/channel/<channel_id>/admin/remove
 authorization Bearer <token>
 {
-	"username": string
+	username: string
 }
 ```
 
@@ -517,9 +524,9 @@ the Max Date.
 POST /api/v1/channel/<channel_id>/member/ban
 authorization Bearer <token>
 {
-	"username": string
-	"until": string // ISO date format YYYY-MM-DD // optional
-	"reason": string // optional
+	username: string
+	until: string // ISO date format YYYY-MM-DD // optional
+	reason: string // optional
 }
 ```
 
@@ -536,7 +543,7 @@ until field will be update to the Min Date.
 POST /api/v1/channel/<channel_id>/member/unban
 authorization Bearer <token>
 {
-	"username": string
+	username: string
 }
 ```
 
@@ -553,9 +560,9 @@ will be set to the Max Date.
 POST /api/v1/channel/<channel_id>/member/mute
 authorization Bearer <token>
 {
-	"username": string
-	"until": string // ISO date format YYYY-MM-DD // optional
-	"reason": string // optional
+	username: string
+	until: string // ISO date format YYYY-MM-DD // optional
+	reason: string // optional
 }
 ```
 
@@ -572,7 +579,7 @@ be update to the Min Date.
 POST /api/v1/channel/<channel_id>/member/unmute
 authorization Bearer <token>
 {
-	"username": string
+	username: string
 }
 ```
 
@@ -588,7 +595,7 @@ Only channel's admin can invite users in the channel.
 POST /api/v1/channel/<channel_id>/member/invite
 authorization Bearer <token>
 {
-	"username": string
+	username: string
 }
 ```
 
@@ -604,8 +611,8 @@ Only channel's admin can update status of user's invitation.
 PUT /api/v1/channel/<channel_id>/member/invite
 authorization Bearer <token>
 {
-	"username": string,
-	"status": string // 'accepted' | 'pending' | 'rejected'
+	username: string,
+	status: string // 'accepted' | 'pending' | 'rejected'
 }
 ```
 
@@ -621,7 +628,7 @@ The sender and receiver must be members of the channel
 POST /api/v1/channel/<channel_id>/message
 authorization Bearer <token>
 {
-	"content": string
+	content: string
 }
 ```
 
@@ -650,7 +657,7 @@ Only the sender of the message can update the content of the message
 PUT /api/v1/channel/<channel_id>/message/<message_id>
 authorization Bearer <token>
 {
-	"content": string
+	content: string
 }
 ```
 
@@ -669,6 +676,8 @@ authorization Bearer <token>
 
 -   A list of ChannelMessage objects ([ChannelMessage](#channelmessage))
 
+# Friendships
+
 ## Invite user to be friend
 
 If the user is already friend, error will be raised. If the user is banned from another user, error will be raised.
@@ -678,7 +687,7 @@ Otherwise a new friendship will be created.
 POST /api/v1/user/friendship/invite
 authorization Bearer <token>
 {
-	"username": string
+	username: string
 }
 ```
 
@@ -694,7 +703,7 @@ Only receiver of the invitation can update status of user's invitation.
 PUT /api/v1/user/friendship/<friendship_id>/status
 authorization Bearer <token>
 {
-	"status": string // 'accepted' | 'pending' | 'rejected'
+	status: string // 'accepted' | 'pending' | 'rejected'
 }
 ```
 
@@ -746,9 +755,9 @@ field is not set, it will be set to the Max Date.
 POST /api/v1/user/friendship/ban
 authorization Bearer <token>
 {
-	"username": string,
-	"until": string, // YYYY-MM-DD // optional
-	"reason": string // optional
+	username: string,
+	until: string, // YYYY-MM-DD // optional
+	reason: string // optional
 }
 ```
 
@@ -778,9 +787,9 @@ authorization Bearer <token>
 POST /api/v1/user/friendship/mute
 authorization Bearer <token>
 {
-	"username": string,
-	"until": string, // YYYY-MM-DD // optional
-	"reason": string // optional
+	username: string,
+	until: string, // YYYY-MM-DD // optional
+	reason: string // optional
 }
 ```
 
@@ -794,13 +803,15 @@ authorization Bearer <token>
 POST /api/v1/user/friendship/unmute
 authorization Bearer <token>
 {
-	"username": string
+	username: string
 }
 ```
 
 ### Return
 
 -   A updated MutedUser object ([MutedUser](#muteduser))
+
+# User messages
 
 ## Send a message to a friend
 
@@ -810,8 +821,8 @@ Only friend can send a message to a friend
 POST /api/v1/user/friend/message
 authorization Bearer <token>
 {
-	"username": string,
-	"content": string
+	username: string,
+	content: string
 }
 ```
 
@@ -838,7 +849,7 @@ Only the sender of the message and provide correctly friend_id and message_id ca
 PUT /api/v1/user/friend/<friend_id>/message/<message_id>
 authorization Bearer <token>
 {
-	"content": string
+	content: string
 }
 ```
 
@@ -846,43 +857,104 @@ authorization Bearer <token>
 
 -   A updated UserMessage object ([UserMessage](#usermessage))
 
-## Games
+# Games
 
-### **Create a game**
+## Create a new game
 
-#### Input
+Create a new game. Add the current user as the only player.
+The game will be created as visibility: 'public', mode: 'classic', status: 'progressing' and maxScore: 5.
 
 ```typescript
-message: `games_create`;
-payload: {
-    maxDuration: 1 | 2 | 3;
-    maxScore: 5 | 10 | 30 | null;
-    mode: "classic" | "hardcore";
-    visibility: "public" | "private";
+POST /api/v1/game
+authorization Bearer <token>
+{
+	visibility: "public" | "private";// optional
+	mode: "classic" | "ranked" | "tournament";// optional
+	tournement_name: string;// optional
+	maxScore: integer;// optional
+	status: "progressing" | "end";// optional
 }
 ```
 
-#### Return
+### Return
 
--   The new game object ([LocalGameInfo](#localgameinfo))
--   ```typescript
-    {
-    	statusCode: 400,
-    	error: 'Bad request',
-    	messages: string[] // describing malformed payload
-    }
-    ```
+-   The new game object ([Game](#game))
 
-### **Join a game**
+## Get a game by game id
 
-#### Input
+Provide game information based on the provided game ID. Only the user who is the player of the game is allowed access.
 
 ```typescript
-message: `games_join`
-payload: {
-	id: string, // Local game id
+GET /api/v1/game/<game_id>
+authorization Bearer <token>
+```
+
+### Return
+
+-   The game object ([Game](#game))
+
+## Add a new player to a game
+
+Add a new player to a game. Only the owner of the game can add a new player.
+
+```typescript
+POST /api/v1/game/<game_id>/player/add
+authorization Bearer <token>
+{
+	username: string
 }
 ```
+
+### Return
+
+-   The updated game object ([Game](#game))
+
+## Remove a player from a game
+
+Remove a player from a game. Only the owner of the game can remove a player.
+
+```typescript
+POST /api/v1/game/<game_id>/player/remove
+authorization Bearer <token>
+{
+	username: string
+}
+```
+
+### Return
+
+-   The updated game object ([Game](#game))
+
+## End a game
+
+End a game. Only the player of the game can end it. It will change the status of the game to 'end'.
+
+```typescript
+POST /api/v1/game/<game_id>/end
+authorization Bearer <token>
+```
+
+### Return
+
+-   The updated game object ([Game](#game))
+
+## Add score of a player
+
+Add a player's score. Only the player of the game can add a score. The AI's score will be disregarded. The winner's
+score will be automatically updated.
+
+```typescript
+POST /api/v1/game/<game_id>/score/add
+authorization Bearer <token>
+{
+	username: string,
+	score: integer
+}
+```
+
+### Return
+
+-   The message ([Message](#message)) or error ([Error](#error)) object
 
 #### Return
 

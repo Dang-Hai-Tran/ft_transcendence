@@ -8,6 +8,7 @@ from .views.friendship import FriendshipViewSet
 from .views.otp import OtpViewSet
 from .views.user import UserViewSet
 from .views.user_message import UserMessageViewSet
+from .views.game import GameViewSet
 
 urlpatterns = [
     # Tokens
@@ -210,4 +211,32 @@ urlpatterns = [
         "user/friend/<int:friend_id>/message/<int:usermessage_id>",
         UserMessageViewSet.as_view({"put": "updateMessageContentToFriend"}),
     ),
+    # Game
+    path("games", GameViewSet.as_view({"get": "list", "post": "create"})),
+    path(
+        "games/<int:pk>",
+        GameViewSet.as_view(
+            {
+                "get": "retrieve",
+                "put": "update",
+                "patch": "partial_update",
+                "delete": "destroy",
+            }
+        ),
+    ),
+    path(
+        "game/create",
+        GameViewSet.as_view({"post": "createGame"}),
+    ),
+    path("game/<int:game_id>", GameViewSet.as_view({"get": "getGame"})),
+    path(
+        "game/<int:game_id>/add",
+        GameViewSet.as_view({"post": "addPlayerToGame"}),
+    ),
+    path(
+        "game/<int:game_id>/remove",
+        GameViewSet.as_view({"post": "removePlayerFromGame"}),
+    ),
+    path("game/<int:game_id>/end", GameViewSet.as_view({"post": "endGame"})),
+    path("game/<int:game_id>/score", GameViewSet.as_view({"post": "addScore"})),
 ]
