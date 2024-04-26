@@ -79,6 +79,17 @@
 
 -   **Games**
     -   [Create a new game](#create-a-new-game)
+    -   [Get a game by game id](#get-a-game-by-game-id)
+    -   [Add a new player to a game](#add-a-new-player-to-a-game)
+    -   [Remove a player from a game](#remove-a-player-from-a-game)
+    -   [End a game](#end-a-game)
+    -   [Add score of a player](#add-score-of-a-player)
+
+-   **Tournaments**
+    -   [Create a new tournament](#create-a-new-tournament)
+    -   [Get a tournament by tournament id](#get-a-tournament-by-tournament-id)
+    -   [Update tournament by id](#update-tournament-by-id)
+    -   [List all tournaments](#list-all-tournaments)
 
 # Authentication
 
@@ -328,7 +339,7 @@ authorization Bearer <token>
 
 ### Return
 
-```typescript
+````typescript
 {
 	user_id: integer
 }
@@ -338,7 +349,7 @@ authorization Bearer <token>
 ```typescript
 GET /api/v1/profile/me
 authorization Bearer <token>
-```
+````
 
 ### Return
 
