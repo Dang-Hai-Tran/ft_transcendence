@@ -71,12 +71,26 @@ class UserMessageViewSet(viewsets.ModelViewSet):
 
     # Get list of last 50 messages sent to a friend
     @action(detail=True, methods=["get"])
-    def getMessagesToFriend(self, request, friend_id):
+    def listMessagesSentToFriend(self, request, friend_id):
         sender = request.user
         try:
             receiver = User.objects.get(id=friend_id)
         except User.DoesNotExist:
             return Response({"error": "Receiver not found"}, status=404)
+        messages = UserMessage.objects.filter(
+            sender=sender, receiver=receiver
+        ).order_by("-created_at")[:50]
+        serializer = self.get_serializer(messages, many=True)
+        return Response(serializer.data, status=200)
+    
+    # Get list of last 50 messages received from a friend
+    @action(detail=True, methods=["get"])
+    def listMessagesReceivedFromFriend(self, request, friend_id):
+        receiver = request.user
+        try:
+            sender = User.objects.get(id=friend_id)
+        except User.DoesNotExist:
+            return Response({"error": "Sender not found"}, status=404)
         messages = UserMessage.objects.filter(
             sender=sender, receiver=receiver
         ).order_by("-created_at")[:50]
@@ -109,8 +123,8 @@ class UserMessageViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in [
             "sendMessageToFriend",
-            "listMessagesToFriend",
-            "getMessagesToFriend",
+            "listMessagesSentToFriend",
+            "listMessagesReceivedFromFriend",
             "updateMessageContentToFriend",
         ]:
             self.permission_classes = [IsAuthenticated]

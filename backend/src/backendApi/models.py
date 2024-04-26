@@ -10,7 +10,7 @@ class User(AbstractUser, PermissionsMixin):
     username = models.CharField(max_length=100, unique=True)
     email = models.EmailField(max_length=100, unique=True)
     password = models.CharField(max_length=100)
-    level = models.IntegerField(default=1)
+    level = models.DecimalField(max_digits=4, decimal_places=2, default=1)
     statusChoices = [("online", "Online"), ("offline", "Offline")]
     status = models.CharField(max_length=100, choices=statusChoices, default="offline")
     avatarPath = models.CharField(max_length=100, default=None, blank=True, null=True)
@@ -105,16 +105,18 @@ class ChannelInvitedUser(models.Model):
 class Tournament(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(null=True, blank=True, default=None)
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
-    max_players = models.PositiveIntegerField()
+    start_date = models.DateField()
+    end_date = models.DateField()
+    max_players = models.PositiveIntegerField(default=100)
     status_choices = [
         ("upcoming", "Upcoming"),
         ("ongoing", "Ongoing"),
         ("completed", "Completed"),
     ]
-    status = models.CharField(max_length=20, choices=status_choices)
-    players = models.ManyToManyField(User, related_name="tournament_players")
+    status = models.CharField(max_length=20, choices=status_choices, default="upcoming")
+    players = models.ManyToManyField(
+        User, related_name="tournament_players", default=list
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

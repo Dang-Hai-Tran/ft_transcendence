@@ -42,6 +42,23 @@ class TournamentViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=200)
         else:
             return Response(serializer.errors, status=400)
+    
+    # Get tournement by id
+    @action(detail=True, methods=["get"])
+    def getTournamentById(self, request, tournament_id):
+        try:
+            tournament = Tournament.objects.get(id=tournament_id)
+        except Tournament.DoesNotExist:
+            return Response({"error": "Tournament not found"}, status=404)
+        serializer = self.get_serializer(tournament)
+        return Response(serializer.data, status=200)
+    
+    # Get all tournaments
+    @action(detail=True, methods=["get"])
+    def getAllTournaments(self, request):
+        tournaments = Tournament.objects.all()
+        serializer = self.get_serializer(tournaments, many=True)
+        return Response(serializer.data, status=200)
 
     # Join a tournament. Only authenticated user can join tournament
     @action(detail=True, methods=["post"])
@@ -51,15 +68,18 @@ class TournamentViewSet(viewsets.ModelViewSet):
         except Tournament.DoesNotExist:
             return Response({"error": "Tournament not found"}, status=404)
         user = request.user
-        if tournament.players.filter(user=user).exists():
+        if tournament.players.filter(id=user.id).exists():
             return Response({"error": "User already joined"}, status=400)
+        # Check is the tournament status is ongoing
+        if tournament.status != "ongoing":
+            return Response({"error": "Tournament is not ongoing"}, status=400)
         tournament.players.add(user)
         tournament.save()
         serializer = self.get_serializer(tournament)
         return Response(serializer.data, status=200)
 
     def get_permissions(self):
-        if self.action in ["joinTournament"]:
+        if self.action in ["joinTournament", "getTournamentById", "getAllTournaments"]:
             self.permission_classes = [IsAuthenticated]
         else:
             self.permission_classes = [IsAdminUser]

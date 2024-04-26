@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from ..models import User, Channel
 
+from backendApi.custom_validator_error import CustomValidationError
+
 
 class ChannelSerializer(serializers.ModelSerializer):
     owner_username = serializers.CharField(required=False)
@@ -39,11 +41,11 @@ class ChannelSerializer(serializers.ModelSerializer):
     def validate(self, data):
         super().validate(data)
         if "owner_username" in data:
-            raise serializers.ValidationError("Cannot set owner_username")
+            raise CustomValidationError(detail="Cannot set owner_username")
         if "admin_usernames" in data:
-            raise serializers.ValidationError("Cannot set admin_usernames")
+            raise CustomValidationError(detail="Cannot set admin_usernames")
         if "member_usernames" in data:
-            raise serializers.ValidationError("Cannot set member_usernames")
+            raise CustomValidationError(detail="Cannot set member_usernames")
         return data
 
     def get_owner_username(self, obj):

@@ -9,6 +9,7 @@ from .views.otp import OtpViewSet
 from .views.user import UserViewSet
 from .views.user_message import UserMessageViewSet
 from .views.game import GameViewSet
+from .views.tournement import TournamentViewSet
 
 urlpatterns = [
     # Tokens
@@ -204,8 +205,12 @@ urlpatterns = [
         UserMessageViewSet.as_view({"post": "sendMessageToFriend"}),
     ),
     path(
-        "user/friend/<int:friend_id>/message/last",
-        UserMessageViewSet.as_view({"get": "getMessagesToFriend"}),
+        "user/friend/<int:friend_id>/message/sent",
+        UserMessageViewSet.as_view({"get": "listMessagesSentToFriend"}),
+    ),
+    path(
+        "user/friend/<int:friend_id>/message/received",
+        UserMessageViewSet.as_view({"get": "listMessagesReceivedFromFriend"}),
     ),
     path(
         "user/friend/<int:friend_id>/message/<int:usermessage_id>",
@@ -225,18 +230,43 @@ urlpatterns = [
         ),
     ),
     path(
-        "game/create",
+        "game",
         GameViewSet.as_view({"post": "createGame"}),
     ),
     path("game/<int:game_id>", GameViewSet.as_view({"get": "getGame"})),
     path(
-        "game/<int:game_id>/add",
+        "game/<int:game_id>/player/add",
         GameViewSet.as_view({"post": "addPlayerToGame"}),
     ),
     path(
-        "game/<int:game_id>/remove",
+        "game/<int:game_id>/player/remove",
         GameViewSet.as_view({"post": "removePlayerFromGame"}),
     ),
     path("game/<int:game_id>/end", GameViewSet.as_view({"post": "endGame"})),
     path("game/<int:game_id>/score", GameViewSet.as_view({"post": "addScore"})),
+    # Tournament
+    path("tournaments", TournamentViewSet.as_view({"get": "list", "post": "create"})),
+    path(
+        "tournaments/<int:pk>",
+        TournamentViewSet.as_view(
+            {
+                "get": "retrieve",
+                "put": "update",
+                "patch": "partial_update",
+                "delete": "destroy",
+            }
+        ),
+    ),
+    path("tournament/create", TournamentViewSet.as_view({"post": "createTournament"})),
+    path(
+        "tournament/<int:tournament_id>/join",
+        TournamentViewSet.as_view({"post": "joinTournament"}),
+    ),
+    path(
+        "tournament/<int:tournament_id>",
+        TournamentViewSet.as_view(
+            {"get": "getTournamentById", "put": "updateTournament"}
+        ),
+    ),
+    path("tournament/list", TournamentViewSet.as_view({"get": "getAllTournaments"})),
 ]

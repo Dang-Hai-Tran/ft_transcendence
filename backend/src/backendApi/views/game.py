@@ -62,6 +62,13 @@ class GameViewSet(viewsets.ModelViewSet):
             return Response({"error": "User not found"}, status=404)
         if game.players.filter(id=player.id).exists():
             return Response({"error": "User is already part of the game"}, status=400)
+        # Check is game is in 'tournament' mode and the player is part of the tournament
+        if game.mode == "tournament":
+            tournament = game.tournament
+            if not tournament.players.filter(id=player.id).exists():
+                return Response(
+                    {"error": "User is not part of the tournament"}, status=400
+                )
         game.players.add(player)
         serializer = self.get_serializer(game)
         return Response(serializer.data, status=200)

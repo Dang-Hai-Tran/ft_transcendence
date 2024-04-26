@@ -71,8 +71,9 @@
 
 -   **User Messages**
 
-    -   [Send a message to a friend](#send-message-to-a-friend)
-    -   [Get list of last 50 messages sent to a friend](#get-list-last-50-messages-sent-to-a-friend)
+    -   [Send a message to a friend](#send-a-message-to-a-friend)
+    -   [Get list of last 50 messages sent to a friend](#get-list-of-last-50-messages-sent-to-a-friend)
+    -   [Get list of last 50 messages received from a friend](#get-list-of-last-50-messages-received-from-a-friend)
     -   [Update the content of a message](#update-the-content-of-a-message)
 
 -   **Games**
@@ -833,7 +834,18 @@ authorization Bearer <token>
 ## Get list of last 50 messages sent to a friend
 
 ```typescript
-GET /api/v1/user/friend/<friend_id>/message/last
+GET /api/v1/user/friend/<friend_id>/message/sent
+authorization Bearer <token>
+```
+
+### Return
+
+-   A list of UserMessage objects ([UserMessage](#usermessage))
+
+## Get list of last 50 messages received from a friend
+
+```typescript
+GET /api/v1/user/friend/<friend_id>/message/received
 authorization Bearer <token>
 ```
 
@@ -870,7 +882,7 @@ authorization Bearer <token>
 {
 	visibility: "public" | "private";// optional
 	mode: "classic" | "ranked" | "tournament";// optional
-	tournement_name: string;// optional
+	tournament_name: string;// optional
 	maxScore: integer;// optional
 	status: "progressing" | "end";// optional
 }
@@ -944,7 +956,7 @@ Add a player's score. Only the player of the game can add a score. The AI's scor
 score will be automatically updated.
 
 ```typescript
-POST /api/v1/game/<game_id>/score/add
+POST /api/v1/game/<game_id>/score
 authorization Bearer <token>
 {
 	username: string,
@@ -954,527 +966,75 @@ authorization Bearer <token>
 
 ### Return
 
--   The message ([Message](#message)) or error ([Error](#error)) object
+-   The ([Message](#message)) if success or ([Error](#error)) if error raised
 
-#### Return
+# Tournaments
 
--   The game object ([LocalGameInfo](#localgameinfo))
--   ```typescript
-    {
-    	statusCode: 400,
-    	error: 'Bad request',
-    	messages: string[] // describing malformed payload
-    }
-    ```
--   ```typescript
-    {
-    	statusCode: 404,
-    	message: 'Not Found',
-    	messages: ['Game not found'],
-    }
-    ```
--   ```typescript
-    {
-    	statusCode: 403,
-    	error: 'Forbidden',
-    	messages: ['User not invited'],
-    }
-    ```
--   ```typescript
-    {
-    	statusCode: 409,
-    	error: 'Conflict',
-    	messages: ['User is already in the game'],
-    }
-    ```
+## Create a new tournament
 
-### **Quit a game**
-
-#### Input
+Only admin of the site can create or remove a new tournament.
 
 ```typescript
-message: `games_quit`
-payload: {
-	id: string, // Game ID
+POST /api/v1/tournament/create
+authorization Bearer <token>
+{
+	name: string,
+	description: string, // optional
+	start_date: Date, // Format: YYYY-MM-DD
+	end_date: Date, // Format: YYYY-MM-DD
+	status: "upcoming" | "ongoing" | "completed", // optional
 }
 ```
 
-#### Return
+### Return
 
--   The game object ([LocalGameInfo](#localgameinfo))
--   ```typescript
-    {
-    	statusCode: 400,
-    	error: 'Bad request',
-    	messages: string[] // describing malformed payload
-    }
-    ```
--   ```typescript
-    {
-    	statusCode: 404,
-    	error: 'Not Found',
-    	messages: ['Game not found'] |
-    				['Player not found'],
-    }
-    ```
+-   The new tournament object ([Tournament](#tournament))
 
-### **Join matchmaking**
+## Get a tournament by tournament id
 
-#### Input
+Provide tournament information based on the provided tournament ID. Every on authenticated user is allowed access.
 
 ```typescript
-message: `games_joinMatchmaking`;
-payload: empty;
+GET /api/v1/tournament/<tournament_id>
+authorization Bearer <token>
 ```
 
-#### Return
+### Return
 
--   `true` when you joined matchmaking
+-   The tournament object ([Tournament](#tournament))
 
-### **Invite a player in a game**
+## Update tournament by id
 
-#### Input
+Only admin of the site can update a tournament.
 
 ```typescript
-message: `games_invite`
-payload: {
-	id: string, // Local game id
-	user_id: number, // ID of user to invite
+PUT /api/v1/tournament/<tournament_id>
+authorization Bearer <token>
+{
+	name: string,
+	description: string, // optional
+	start_date: Date, // Format: YYYY-MM-DD
+	end_date: Date, // Format: YYYY-MM-DD
+	status: "upcoming" | "ongoing" | "completed", // optional
 }
 ```
 
-#### Return
+### Return
 
--   The user invited ([User](#user))
--   ```typescript
-    {
-    	statusCode: 400,
-    	error: 'Bad request',
-    	messages: string[] // describing malformed payload
-    }
-    ```
--   ```typescript
-    {
-    	statusCode: 404,
-    	message: 'Not Found',
-    	messages: ['Game not found'] |
-    				['User not found'],
-    }
-    ```
--   ```typescript
-    {
-    	statusCode: 403,
-    	error: 'Forbidden',
-    	messages: ['Only the creator can invite'] |
-    				['Game is already full'] |
-    				['User is offline'], |
-    				['Game is not private']
-    }
-    ```
--   ```typescript
-    {
-    	statusCode: 409,
-    	error: 'Conflict',
-    	messages: ['User is already in the game']
-    			| ['You cannot invite yourself']
-    			| ['User is already invited']
-    }
-    ```
+-   The updated tournament object ([Tournament](#tournament))
 
-### **Send new player position**
+## List all tournaments
 
-#### Input
+Get information of all tournaments. Every on authenticated user is allowed access.
 
 ```typescript
-message: `games_playerMove`
-payload: {
-	id: string, // Local game id
-	y: number, // The new Y position
-}
+GET /api/v1/tournament/list
+authorization Bearer <token>
 ```
 
-#### Return
+### Return
 
--   A `null` response (means everything is alright)
--   ```typescript
-    {
-    	statusCode: 400,
-    	error: 'Bad request',
-    	messages: string[] // describing malformed payload
-    }
-    ```
--   ```typescript
-    {
-    	statusCode: 404,
-    	message: 'Not Found',
-    	messages: ['Game not found'] |
-    				['Player not found'],
-    }
-    ```
-
-### **Get player games history**
-
-#### Input
-
-```typescript
-message: `games_history`
-payload: {
-	id: number, // User id
-}
-```
-
-#### Return
-
--   A game array ([Game[]](#game))
--   ```typescript
-    {
-    	statusCode: 400,
-    	error: 'Bad request',
-    	messages: string[] // describing malformed payload
-    }
-    ```
--   ```typescript
-    {
-    	statusCode: 404,
-    	message: 'Not Found',
-    	messages: ['User not found'],
-    }
-    ```
-
-### **Get player statistics**
-
-#### Input
-
-```typescript
-message: `games_userStats`
-payload: {
-	id: number, // User id
-}
-```
-
-#### Return
-
--   A user stats object ([StatsUser](#statsuser))
--   ```typescript
-    {
-    	statusCode: 400,
-    	error: 'Bad request',
-    	messages: string[] // describing malformed payload
-    }
-    ```
--   ```typescript
-    {
-    	statusCode: 404,
-    	message: 'Not Found',
-    	messages: ['User not found'],
-    }
-    ```
-
-### **Get leaderboards**
-
-#### Input
-
-```typescript
-message: `games_leaderboards`;
-payload: empty;
-```
-
-#### Return
-
--   A leaderboards object ([Leaderboards](#leaderboards))
-
-### **Start watching a game**
-
-#### Input
-
-```typescript
-message: `games_startWatching`
-payload: {
-	id: string, // Game id, optionnal if you provide a user_id
-	user_id: number, // User id, optionnal if you provide a game id
-}
-```
-
-#### Return
-
--   The local game info object ([LocalGameInfo](#localgameinfo))
--   ```typescript
-    {
-    	statusCode: 400,
-    	error: 'Bad request',
-    	messages: string[] // describing malformed payload
-    }
-    ```
--   ```typescript
-    {
-    	statusCode: 404,
-    	message: 'Not Found',
-    	messages: ['Game not found'],
-    }
-    ```
-
-### **Stop watching a game**
-
-#### Input
-
-```typescript
-message: `games_stopWatching`
-payload: {
-	id: string, // Game id, optionnal if you provide a user_id
-	user_id: number, // User id, optionnal if you provide a game id
-}
-```
-
-#### Return
-
--   The local game info object ([LocalGameInfo](#localgameinfo))
--   ```typescript
-    {
-    	statusCode: 400,
-    	error: 'Bad request',
-    	messages: string[] // describing malformed payload
-    }
-    ```
--   ```typescript
-    {
-    	statusCode: 404,
-    	message: 'Not Found',
-    	messages: ['Game not found'],
-    }
-    ```
-
-# Websocket Events
-
-## Users
-
-### **New private message**
-
--   Event name: `users_message`
--   Data type: [UserMessage](#usermessage)
-
-### **On profile update**
-
-When a user related to you update his profile (a friend or someone who is in one of the channels you joined)
-
--   Event name: `users_update`
--   Data type: [User](#user)
-
-### **On friendship invitation**
-
--   Event name: `users_friendshipInvitation`
--   Data type: [UserFriend](#userfriend)
-
-### **On friendship acceptation**
-
--   Event name: `users_friendshipAccepted`
--   Data type: [UserFriend](#userfriend)
-
-### **On friendship deletion**
-
-When someone remove your friendship or decline your invitation
-
--   Event name: `users_friendshipRemoved`
--   Data type: [UserFriend](#userfriend)
-
-### **On ban**
-
-When someone ban you from his friends.
-
--   Event name: `users_banned`
--   Data type: [BannedUser](#banneduser)
-
-### **On mute**
-
--   Event name: `users_muted`
--   Data type: [MutedUser](#muteduser)
-
-## Channels
-
-### **New channel message**
-
--   Event name: `channels_message`
--   Data type: [ChannelMessage](#channelmessage)
-
-### **On channel update**
-
--   Event name: `channels_update`
--   Data type: [Channel](#channel)
-
-### **On member join**
-
-When a new member join the channel
-
--   Event name: `channels_join`
--   Data type: [Channel](#channel)
-
-### **On member leave**
-
-When a member leave the channel
-
--   Event name: `channels_leave`
--   Data type: [Channel](#channel)
-
-### **On admin added**
-
-When a member is promoted admin
-
--   Event name: `channels_addAdmin`
--   Data type: [Channel](#channel)
-
-### **On admin removed**
-
-When a member is downgraded
-
--   Event name: `channels_removeAdmin`
--   Data type: [Channel](#channel)
-
-### **On member ban**
-
-When a member is banned
-
--   Event name: `channels_banUser`
--   Data type: [ChannelBannedUser](#channelbanneduser)
-
-### **On member mute**
-
-When a member is muted
-
--   Event name: `channels_muteUser`
--   Data type: [ChannelMutedUser](#channelmuteduser)
-
-### **On channel invitation**
-
-When you receive an invitation to join a channel
-
--   Event name: `channels_inviteUser`
--   Data type: [ChannelInvitedUser](#channelinviteduser)
-
-#### Example
-
-```typescript
-socket.on("channels_message", (data: any) => {
-    console.log(`New message from ${data.user.username} in ${data.channel.name}: ${data.message}`);
-});
-```
-
-## Games
-
-### **Game start**
-
-Send game information 3 seconds before the start of the game.
-
--   Event name: `games_start`
--   Data type: [LocalGameInfo](#localgameinfo)
-
-### **Invitation to a game**
-
--   Event name: `games_invitation`
--   Data type: [LocalGameInfo](#localgameinfo)
-
-### **Game end**
-
--   Event name: `games_end`
--   Data type:
-    ```typescript
-    	{
-    		winner: {
-    			user: User,
-    			score: number,
-    		},
-    		score: number,
-    		opponent_score: number,
-    	}
-    ```
-
-### **New opponent position**
-
--   Event name: `games_opponentMove`
--   Data type:
-    ```typescript
-    {
-        y: number;
-    }
-    ```
-
-### **New score (after a goal)**
-
--   Event name: `games_score`
--   Data type:
-    ```typescript
-    	you: number, // your score
-    	opponent: number, // opponent score
-    ```
-
-### **On play invitation**
-
--   Event name: `games_invitation`
--   Data type:
-    ```typescript
-    	game: LocalGameInfo,
-    	inviter: User,
-    ```
-
-### **New ball position**
-
--   Event name: `games_ballMove`
--   Data type:
-    ```typescript
-    	x: number,
-    	y: number
-    ```
-
-### **Watch - New creator position**
-
--   Event name: `games_watch_creatorMove`
--   Data type:
-    ```typescript
-    {
-        y: number;
-    }
-    ```
-
-### **Watch - New opponent position**
-
--   Event name: `games_watch_opponentMove`
--   Data type:
-    ```typescript
-    {
-        y: number;
-    }
-    ```
-
-### **Watch - New ball position**
-
--   Event name: `games_watch_ballMove`
--   Data type:
-    ```typescript
-    	x: number,
-    	y: number
-    ```
-
-### **Watch - New score (after a goal)**
-
--   Event name: `games_watch_score`
--   Data type:
-    ```typescript
-    	creator: number, // creator score
-    	opponent: number, // opponent score
-    ```
-
-### **Watch - Game end**
-
--   Event name: `games_watch_end`
--   Data type:
-    ```typescript
-    	{
-    		winner: {
-    			user: User,
-    			score: number,
-    		},
-    		creator_score: number,
-    		opponent_score: number,
-    	}
-    ```
+-   A list of tournament objects ([Tournament](#tournament))
 
 # Objects
 

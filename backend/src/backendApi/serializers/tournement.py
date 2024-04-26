@@ -1,6 +1,7 @@
 from backendApi.models import Tournament
 from rest_framework import serializers
 from django.utils import timezone
+from backendApi.custom_validator_error import CustomValidationError
 
 
 class TournamentSerializer(serializers.ModelSerializer):
@@ -10,7 +11,17 @@ class TournamentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tournament
-        fields = "__all__"
+        fields = [
+            "id",
+            "name",
+            "description",
+            "start_date",
+            "end_date",
+            "status",
+            "player_usernames",
+            "created_at",
+            "updated_at",
+        ]
         reads_only_fields = [
             "id",
             "status",
@@ -21,8 +32,8 @@ class TournamentSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         super().validate(data)
-        if data["start_time"] > data["end_time"]:
-            raise serializers.ValidationError("Start time must be before end time")
+        if data["start_date"] > data["end_date"]:
+            raise CustomValidationError(detail="Start time must be before end time")
         return data
 
     def get_player_usernames(self, obj):
@@ -36,15 +47,15 @@ class TournamentSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         tournement = super().create(validated_data)
         # Set the status by compared to the start time
-        if tournement.start_time > timezone.now():
+        if tournement.start_date > timezone.now().date():
             tournement.status = "upcoming"
-        elif tournement.end_time < timezone.now():
+        elif tournement.end_date < timezone.now().date():
             tournement.status = "completed"
         else:
             tournement.status = "ongoing"
         tournement.save()
         return tournement
-    
+
     def update(self, instance, validated_data):
         for key, value in validated_data.items():
             setattr(instance, key, value)
