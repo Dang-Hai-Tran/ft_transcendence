@@ -1016,6 +1016,20 @@ authorization Bearer <token>
 
 -   The new tournament object ([Tournament](#tournament))
 
+## Join a tournament
+
+The authenticated user can join a tournament if the tournament's status is 'ongoing'.
+
+```typescript
+POST /api/v1/tournament/<tournament_id>/join
+authorization Bearer <token>
+```
+
+### Return
+
+-   The tournament object ([Tournament](#tournament))
+
+
 ## Get a tournament by tournament id
 
 Provide tournament information based on the provided tournament ID. Every on authenticated user is allowed access.
