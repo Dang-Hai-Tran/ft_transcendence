@@ -70,7 +70,6 @@ class GameSerializer(serializers.ModelSerializer):
         return representation
 
     def create(self, validated_data):
-        print(validated_data)
         owner = self.context["request"].user
         tournament_name = validated_data.pop("tournament_name", None)
         game = Game.objects.create(**validated_data)

@@ -16,7 +16,7 @@ class User(AbstractUser, PermissionsMixin):
     avatarPath = models.CharField(max_length=100, default=None, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    
     def save(self, *args, **kwargs):
         if self.password and not self.password.startswith("pbkdf2_sha256"):
             self.set_password(self.password)

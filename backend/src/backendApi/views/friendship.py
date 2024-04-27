@@ -141,6 +141,10 @@ class FriendshipViewSet(viewsets.ModelViewSet):
             receiver = User.objects.get(username=receiver_username)
         except User.DoesNotExist:
             return Response({"error": "Receiver not found"}, status=404)
+        
+        # Check is sender and receiver are same person
+        if sender == receiver:
+            return Response({"error": "Sender and receiver are the same person"}, status=400)
 
         # Check if the receiver is already banned by the sender
         if BannedUser.objects.filter(

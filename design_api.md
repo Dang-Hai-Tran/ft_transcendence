@@ -6,6 +6,7 @@
 -   [Friendships](#friendship)
 -   [User Messages](#user-messages)
 -   [Games](#games)
+-   [Tournaments](#tournaments)
 -   [Objects](#objects)
 
 ## Per modules
@@ -78,6 +79,7 @@
     -   [Update the content of a message](#update-the-content-of-a-message)
 
 -   **Games**
+
     -   [Create a new game](#create-a-new-game)
     -   [Get a game by game id](#get-a-game-by-game-id)
     -   [Add a new player to a game](#add-a-new-player-to-a-game)
@@ -341,7 +343,7 @@ authorization Bearer <token>
 
 ````typescript
 {
-	user_id: integer
+	user_id: number
 }
 
 ## Get my profile
@@ -909,7 +911,7 @@ authorization Bearer <token>
 	visibility: "public" | "private";// optional
 	mode: "classic" | "ranked" | "tournament";// optional
 	tournament_name: string;// optional
-	maxScore: integer;// optional
+	maxScore: number;// optional
 	status: "progressing" | "end";// optional
 }
 ```
@@ -986,7 +988,7 @@ POST /api/v1/game/<game_id>/score
 authorization Bearer <token>
 {
 	username: string,
-	score: integer
+	score: number
 }
 ```
 
@@ -1028,7 +1030,6 @@ authorization Bearer <token>
 ### Return
 
 -   The tournament object ([Tournament](#tournament))
-
 
 ## Get a tournament by tournament id
 
@@ -1078,13 +1079,28 @@ authorization Bearer <token>
 
 # Objects
 
-## WSResponse
+## Message
 
 ```typescript
 {
-	statusCode: number, // HTTP status code
-	error: string, // Relatded HTTP message
-	messages: string[], // array of string describing the problem
+    messages: string;
+}
+```
+
+## Error
+
+```typescript
+{
+	error: string;
+}
+```
+
+## Token
+
+```typescript
+{
+	refresh: string,
+	access: string
 }
 ```
 
@@ -1093,44 +1109,44 @@ authorization Bearer <token>
 ```typescript
 {
 	id: number,
-	id42: number, // null for non-42 users
 	username: string,
-	displayName: string,
-	status: 'online' | 'offline' | 'playing',
-	elo: number,
-	firstConnection: boolean,
-	invitedFriends: UserFriends[],
-	friendOf: UserFriend[],
-	friends: User[],
-	profile_picture: string,
+	first_name: string,
+	last_name: string,
+	emaill: string,
+	level: number,
+	status: 'online' | 'offline',
+	avatarPath: string,
+	last_login: Datetime,
+	created_at: Datetime,
+	updated_at: Datetime
 }
 ```
 
-## UserFriend
+## Friendship
 
 ```typescript
 {
-	inviterId: number,
-	inviter: User,
-
-	inviteeId: number,
-	invitee: User,
-
-	accepted: boolean
+	id: number,
+	sender_username: string,
+	receiver_username: string,
+	status: 'pending' | 'accepted' | 'rejected',
+	created_at: Datetime
+	updated_at: Datetime
 }
 ```
+
 
 ## BannedUser
 
 ```typescript
 {
-	userId: number,
-	user: User,
-
-	bannedId: number,
-	banned: User,
-
-	until: Date
+	id: number,
+	sender_username: string,
+	receiver_username: string,
+	until: Date,
+	bannedReason: string,
+	created_at: Date,
+	updated_at: Date
 }
 ```
 
@@ -1138,13 +1154,13 @@ authorization Bearer <token>
 
 ```typescript
 {
-	userId: number,
-	user: User,
-
-	mutedId: number,
-	muted: User,
-
-	until: Date
+	id: number,
+	sender_username: string,
+	receiver_username: string,
+	until: Date,
+	mutedReason: string,
+	created_at: Date,
+	updated_at: Date
 }
 ```
 
@@ -1153,16 +1169,11 @@ authorization Bearer <token>
 ```typescript
 {
 	id: number,
-
-	senderId: number,
-	sender: User,
-
-	receiverId: number,
-	receiver: User,
-
-	message: string,
-
-	sentAt: Date
+	sender_username: string,
+	receiver_username: string,
+	content: string,
+	created_at: Date,
+	updated_at: Date
 }
 ```
 

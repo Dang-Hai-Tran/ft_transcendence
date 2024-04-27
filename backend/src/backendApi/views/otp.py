@@ -66,7 +66,6 @@ class OtpViewSet(viewsets.ModelViewSet):
             return Response({'error': 'User not found'}, status=404)
         instance = Otp.objects.get(user=user)
         otp = instance.getOtp()
-        print(f'OTP code of {user.username} is {otp}')
         return Response({'otp': otp}, status=200)
 
     @action(detail=True, methods=['post'])
