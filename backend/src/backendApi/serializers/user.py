@@ -22,7 +22,7 @@ class UserSerializer(serializers.ModelSerializer):
             "last_login",
             "created_at",
             "updated_at",
-            "nb_game",
+            "nb_games",
             "avg_score",
         ]
         read_only_fields = [
