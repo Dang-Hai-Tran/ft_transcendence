@@ -94,6 +94,11 @@
     -   [Update tournament by id](#update-tournament-by-id)
     -   [List all tournaments](#list-all-tournaments)
 
+-   **Notifications**
+    -   [Create a new notification](#create-a-new-notification)
+    -   [List all notifications](#list-all-notifications)
+    -   [Make a notification as read](#make-a-notification-as-read)
+
 # Authentication
 
 For every route, except `/register`, `/login` and `/otp/status` you need to provide a Bearer token in the request headers.
@@ -1131,7 +1136,7 @@ authorization Bearer <token>
 
 ```typescript
 {
-	error: string;
+    error: string;
 }
 ```
 
@@ -1176,7 +1181,6 @@ authorization Bearer <token>
 	updated_at: Datetime
 }
 ```
-
 
 ## BannedUser
 
