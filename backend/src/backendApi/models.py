@@ -282,3 +282,13 @@ class Otp(models.Model):
 
     def __str__(self):
         return f"Otp : {self.user.username} : {self.otpStatus}"
+
+class Notification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField(default=None, blank=True, null=True)
+    isRead = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Notification : {self.user.username} : {self.content}"

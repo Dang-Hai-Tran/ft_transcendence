@@ -10,6 +10,7 @@ from .views.user import UserViewSet
 from .views.user_message import UserMessageViewSet
 from .views.game import GameViewSet
 from .views.tournement import TournamentViewSet
+from .views.notification import NotificationViewSet
 
 urlpatterns = [
     # Tokens
@@ -28,7 +29,9 @@ urlpatterns = [
             }
         ),
     ),
-    path("users/id/<str:username>", UserViewSet.as_view({"get": "getUserIdByUsername"})),
+    path(
+        "users/id/<str:username>", UserViewSet.as_view({"get": "getUserIdByUsername"})
+    ),
     # Auth
     path("auth/register", UserViewSet.as_view({"post": "register"})),
     path("auth/login", UserViewSet.as_view({"post": "logIn"})),
@@ -270,4 +273,22 @@ urlpatterns = [
         ),
     ),
     path("tournament/list", TournamentViewSet.as_view({"get": "getAllTournaments"})),
+    # Notification
+    path(
+        "notifications", NotificationViewSet.as_view({"get": "list", "post": "create"})
+    ),
+    path(
+        "notifications/<int:pk>",
+        NotificationViewSet.as_view(
+            {
+                "get": "retrieve",
+                "put": "update",
+                "patch": "partial_update",
+                "delete": "destroy",
+            }
+        ),
+    ),
+    path("notification/create", NotificationViewSet.as_view({"post": "createNotification"})),
+    path("notification/list", NotificationViewSet.as_view({"get": "getAllNotifications"})),
+    path("notification/<int:notification_id>/read", NotificationViewSet.as_view({"post": "readNotification"})),
 ]

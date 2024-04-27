@@ -7,6 +7,7 @@
 -   [User Messages](#user-messages)
 -   [Games](#games)
 -   [Tournaments](#tournaments)
+-   [Notifications](#notifications)
 -   [Objects](#objects)
 
 ## Per modules
@@ -1077,6 +1078,45 @@ authorization Bearer <token>
 
 -   A list of tournament objects ([Tournament](#tournament))
 
+# Notifications
+
+## Create a new notification
+
+```typescript
+POST /api/v1/notification/create
+authorization Bearer <token>
+{
+	username: string,
+	content: string
+}
+```
+
+### Return
+
+-   The new notification object ([Notification](#notification))
+
+## List all notifications
+
+```typescript
+GET /api/v1/notification/list
+authorization Bearer <token>
+```
+
+### Return
+
+-   A list of notification objects ([Notification](#notification))
+
+## Make a notification as read
+
+```typescript
+POST /api/v1/notification/<notification_id>/read
+authorization Bearer <token>
+```
+
+### Return
+
+-   The updated notification object ([Notification](#notification))
+
 # Objects
 
 ## Message
@@ -1119,6 +1159,8 @@ authorization Bearer <token>
 	last_login: Datetime,
 	created_at: Datetime,
 	updated_at: Datetime
+	nb_games: number,
+	avg_score: number
 }
 ```
 
@@ -1174,141 +1216,5 @@ authorization Bearer <token>
 	content: string,
 	created_at: Date,
 	updated_at: Date
-}
-```
-
-## Channel
-
-```typescript
-{
-	id: number,
-	code: string,
-	owner: User,
-	name: string,
-	visibility: 'public' | 'private' | 'protected',
-	admins: User[],
-	members: User[],
-	banned: User[],
-	muted: User[],
-	invited: User[],
-}
-```
-
-## ChannelBannedUser
-
-```typescript
-{
-	userId: number,
-	user: User,
-
-	channelId: number,
-	channel: Channel,
-
-	until: Date,
-}
-```
-
-## ChannelMutedUser
-
-```typescript
-{
-	userId: number,
-	user: User,
-
-	channelId: number,
-	channel: Channel,
-
-	until: Date,
-}
-```
-
-## ChannelInvitedUser
-
-```typescript
-{
-	userId: number,
-	user: User,
-
-	inviterId: number,
-	inviter: User,
-
-	channelId: number,
-	channel: Channel,
-
-	invited_at: Date,
-}
-```
-
-## ChannelMessage
-
-```typescript
-{
-	id: number,
-
-	senderId: number,
-	serder: User,
-
-	channelId: number,
-	channel: Channel,
-
-	message: string,
-
-	sentAt: Date,
-}
-```
-
-## Game
-
-```typescript
-{
-	id: number,
-	visibility: 'public' | 'private',
-	mode: 'classic' | 'hardcore',
-	maxDuration: 1 | 2 | 3;
-	maxScore: 5 | 10 | 30 | null,
-
-	winner: User,
-	winnerScore: number,
-
-	loser: User,
-	loserScore: number,
-}
-```
-
-## LocalGameInfo
-
-```typescript
-{
-	id: string,
-	state: "waiting" | "started" | "ended" | "saved",
-	startAt: number | null,
-	players: Array<{
-		user: User,
-		score: number,
-	}>,
-	paddleHeight: number,
-}
-```
-
-## StatsUser
-
-```typescript
-{
-	user: User,
-	stats: {
-		games: number,
-		wins: number,
-		losses: number,
-		winrate: number,
-	},
-}
-```
-
-## Leaderboards
-
-```typescript
-{
-	elo: User[],
-	mostPlayed: StatsUser[],
 }
 ```
