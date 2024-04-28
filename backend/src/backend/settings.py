@@ -10,10 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
-from pathlib import Path
 import os
 from datetime import timedelta
-
+from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,6 +26,13 @@ SECRET_KEY = "django-insecure-ga)!l78e2#bsa6($zugz+1x8*xiydm!3%(5=mg+t+vi9lvkx9z
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "api.transcendence.local",
+    "transcendence.local",
+]
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
@@ -103,7 +109,7 @@ DATABASES = {
         "NAME": os.getenv("POSTGRES_DB", "transcendence"),
         "USER": os.getenv("POSTGRES_USER", "datran"),
         "PASSWORD": os.getenv("POSTGRES_PASSWORD", "transcendence"),
-        "HOST": "localhost", #os.getenv('POSTGRES_HOST', 'localhost'),
+        "HOST": "localhost",  # os.getenv("POSTGRES_HOST", "localhost"),
         "PORT": os.getenv("POSTGRES_PORT", "5432"),
     }
 }
@@ -168,7 +174,8 @@ SIMPLE_JWT = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    f"{os.getenv('FRONTEND_URL')}:{os.getenv('FRONTEND_PORT')}",
+    f"http://{os.getenv('FRONTEND_URL')}:{os.getenv('FRONTEND_PORT')}",
+    f"http://{os.getenv('BACKEND_URL')}:{os.getenv('BACKEND_PORT')}",
     "http://127.0.0.1:5500",
 ]
 
