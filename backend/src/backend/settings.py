@@ -34,18 +34,10 @@ ALLOWED_HOSTS = [
     "transcendence.local",
 ]
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
-
-# Force HTTPS
-SSL_CERTIFICATE = os.getenv("SSL_CERTIFICATE")
-SSL_CERTIFICATE_KEY = os.getenv("SSL_CERTIFICATE_KEY")
 
 # Configure SSL/TLS settings
-if SSL_CERTIFICATE and SSL_CERTIFICATE_KEY:
-    SECURE_SSL_REDIRECT = True
-    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-    SSL_CERTIFICATE_FILE = SSL_CERTIFICATE
-    SSL_CERTIFICATE_KEY_FILE = SSL_CERTIFICATE_KEY
+# SECURE_SSL_REDIRECT = True
+# SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 
 # Application definition
@@ -109,7 +101,7 @@ DATABASES = {
         "NAME": os.getenv("POSTGRES_DB", "transcendence"),
         "USER": os.getenv("POSTGRES_USER", "datran"),
         "PASSWORD": os.getenv("POSTGRES_PASSWORD", "transcendence"),
-        "HOST": "localhost",  # os.getenv("POSTGRES_HOST", "localhost"),
+        "HOST": os.getenv("POSTGRES_HOST", "localhost"),
         "PORT": os.getenv("POSTGRES_PORT", "5432"),
     }
 }
@@ -175,8 +167,11 @@ SIMPLE_JWT = {
 
 CORS_ALLOWED_ORIGINS = [
     f"http://{os.getenv('FRONTEND_URL')}:{os.getenv('FRONTEND_PORT')}",
+    f"https://{os.getenv('FRONTEND_URL')}:{os.getenv('FRONTEND_PORT')}",
     f"http://{os.getenv('BACKEND_URL')}:{os.getenv('BACKEND_PORT')}",
+    f"https://{os.getenv('BACKEND_URL')}:{os.getenv('BACKEND_PORT')}",
     "http://127.0.0.1:5500",
+    "https://127.0.0.1:5500",
 ]
 
 CORS_ALLOW_WEBSOCKETS = True
