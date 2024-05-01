@@ -7,6 +7,7 @@ from backendApi.serializers.notification import NotificationSerializer
 
 from django_filters.rest_framework import DjangoFilterBackend
 
+
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
@@ -26,11 +27,10 @@ class NotificationViewSet(viewsets.ModelViewSet):
         content = request.data.get("content", None)
         if not content:
             return Response({"error": "Content not provided"}, status=400)
-        serializer = self.get_serializer(user=user, content=content)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
+        notification = Notification.objects.create(user=user, content=content)
+        serializer = self.get_serializer(notification)
         return Response(serializer.data, status=201)
-    
+
     # Get all notifications for a user
     @action(detail=True, methods=["get"])
     def getAllNotifications(self, request):
@@ -38,7 +38,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
         notifications = Notification.objects.filter(user=user)
         serializer = self.get_serializer(notifications, many=True)
         return Response(serializer.data, status=200)
-    
+
     @action(detail=True, methods=["post"])
     def readNotification(self, request, notification_id):
         try:
@@ -48,13 +48,20 @@ class NotificationViewSet(viewsets.ModelViewSet):
         user = request.user
         # Check is the notification belongs to the user
         if notification.user != user:
-            return Response({"error": "You are not authorized to read this notification"}, status=403)
+            return Response(
+                {"error": "You are not authorized to read this notification"},
+                status=403,
+            )
         notification.isRead = True
         notification.save()
         return Response({"message": "Notification marked as read"}, status=200)
-    
+
     def get_permissions(self):
-        if self.action in ["createNotification", "getAllNotifications", "readNotification"]:
+        if self.action in [
+            "createNotification",
+            "getAllNotifications",
+            "readNotification",
+        ]:
             self.permission_classes = [IsAuthenticated]
         else:
             self.permission_classes = [IsAdminUser]

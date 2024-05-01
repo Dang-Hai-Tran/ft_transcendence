@@ -101,7 +101,7 @@ DATABASES = {
         "NAME": os.getenv("POSTGRES_DB", "transcendence"),
         "USER": os.getenv("POSTGRES_USER", "datran"),
         "PASSWORD": os.getenv("POSTGRES_PASSWORD", "transcendence"),
-        "HOST": os.getenv("POSTGRES_HOST", "localhost"),
+        "HOST": "localhost",  # os.getenv("POSTGRES_HOST", "localhost"),
         "PORT": os.getenv("POSTGRES_PORT", "5432"),
     }
 }

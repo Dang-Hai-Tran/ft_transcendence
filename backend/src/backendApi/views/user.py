@@ -115,6 +115,13 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({"error": "User not found"}, status=404)
         return Response({"user_id": user.id}, status=200)
 
+    # Get list non super user
+    @action(detail=True, methods=["get"])
+    def getListNonSuperUser(self, request):
+        users = User.objects.filter(is_superuser=False)
+        serializer = self.get_serializer(users, many=True)
+        return Response(serializer.data, status=200)
+
     def get_permissions(self):
         if self.action in ["register", "logIn"]:
             self.permission_classes = [AllowAny]

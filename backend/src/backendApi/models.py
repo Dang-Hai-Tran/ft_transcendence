@@ -16,7 +16,7 @@ class User(AbstractUser, PermissionsMixin):
     avatarPath = models.CharField(max_length=100, default=None, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     def save(self, *args, **kwargs):
         if self.password and not self.password.startswith("pbkdf2_sha256"):
             self.set_password(self.password)
@@ -284,7 +284,7 @@ class Otp(models.Model):
         return f"Otp : {self.user.username} : {self.otpStatus}"
 
 class Notification(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notification_user")
     content = models.TextField(default=None, blank=True, null=True)
     isRead = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
