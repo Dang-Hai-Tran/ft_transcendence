@@ -4,7 +4,6 @@ from django.http import FileResponse
 from django.shortcuts import render
 from django.utils import timezone
 from django.contrib.auth import authenticate
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
@@ -18,8 +17,6 @@ from ..serializers.user import UserSerializer
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = "__all__"
 
     def get_queryset(self):
         return super().get_queryset().order_by("id")

@@ -5,15 +5,12 @@ from django.utils import timezone
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 
 
 class GameViewSet(viewsets.ModelViewSet):
     serializer_class = GameSerializer
     queryset = Game.objects.all()
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = "__all__"
 
     # Create game view
     @action(detail=False, methods=["post"])

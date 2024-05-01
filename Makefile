@@ -16,7 +16,13 @@ restart:
 	docker compose restart
 
 logs:
-	docker compose logs
+	docker compose logs -f
+
+back_logs:
+	docker compose logs -f backend
+
+db_logs:
+	docker compose logs -f db
 
 status:
 	docker compose ps

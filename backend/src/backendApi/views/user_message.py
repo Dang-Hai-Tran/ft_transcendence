@@ -2,7 +2,6 @@ from datetime import datetime
 
 from backendApi.models import Friendship, MutedUser, User, UserMessage
 from backendApi.serializers.user_message import UserMessageSerializer
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
@@ -12,8 +11,6 @@ from rest_framework.response import Response
 class UserMessageViewSet(viewsets.ModelViewSet):
     queryset = UserMessage.objects.all()
     serializer_class = UserMessageSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ["sender", "receiver"]
 
     def get_queryset(self):
         return super().get_queryset().order_by("id")

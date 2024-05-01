@@ -8,11 +8,10 @@ django = "*"
 djangorestframework = "*"
 djangorestframework-simplejwt = "*"
 psycopg2 = "*"
-django-environs = "*"
-django-filter = "*"
 pyotp = "*"
 django-cors-headers = "*"
 qrcode = "*"
+python-dotenv = "*"
 
 [dev-packages]
 

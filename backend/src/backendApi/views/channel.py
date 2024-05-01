@@ -1,7 +1,6 @@
 from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from backendApi.hash import verify_password
@@ -21,14 +20,11 @@ from backendApi.serializers.channel import ChannelSerializer
 from backendApi.serializers.channel_banned_user import ChannelBannedUserSerializer
 from backendApi.serializers.channel_muted_user import ChannelMutedUserSerializer
 from backendApi.serializers.channel_invited_user import ChannelInvitedUserSerializer
-from backendApi.permissions import IsChannelAdmin, IsChannelMember, IsChannelInvitedUser
 
 
 class ChannelViewSet(viewsets.ModelViewSet):
     queryset = Channel.objects.all()
     serializer_class = ChannelSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = "__all__"
 
     def get_queryset(self):
         return super().get_queryset().order_by("id")

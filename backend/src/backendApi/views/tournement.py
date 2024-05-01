@@ -6,14 +6,11 @@ from rest_framework.response import Response
 from django.utils import timezone
 from rest_framework.decorators import action
 
-from django_filters.rest_framework import DjangoFilterBackend
-
 
 class TournamentViewSet(viewsets.ModelViewSet):
     queryset = Tournament.objects.all()
     serializer_class = TournamentSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = "__all__"
+
 
     def get_queryset(self):
         return Tournament.objects.order_by("id")

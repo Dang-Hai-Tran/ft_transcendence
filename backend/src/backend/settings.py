@@ -13,25 +13,55 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 from datetime import timedelta
 from pathlib import Path
+from dotenv import load_dotenv
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load .env file
+if os.getenv("SECRET_KEY") is None:
+    load_dotenv()
+
+from .configs import app
+
+# Load config file
+SECRET_KEY = app["SECRET_KEY"]
+POSTGRES_DB = app["POSTGRES_DB"]
+POSTGRES_USER = app["POSTGRES_USER"]
+POSTGRES_PASSWORD = app["POSTGRES_PASSWORD"]
+POSTGRES_PORT = app["POSTGRES_PORT"]
+BACKEND_PORT = app["BACKEND_PORT"]
+FRONTEND_PORT = app["FRONTEND_PORT"]
+BACKEND_URL = app["BACKEND_URL"]
+FRONTEND_URL = app["FRONTEND_URL"]
+SSL_CERTIFICATE = app["SSL_CERTIFICATE"]
+SSL_CERTIFICATE_KEY = app["SSL_CERTIFICATE_KEY"]
+
+isDev = True
+
+if isDev:
+    DEBUG = app["dev"]["DEBUG"]
+    POSTGRES_HOST = app["dev"]["POSTGRES_HOST"]
+    DATABASE_URL = app["dev"]["DATABASE_URL"]
+else:
+    DEBUG = app["prod"]["DEBUG"]
+    POSTGRES_HOST = app["prod"]["POSTGRES_HOST"]
+    DATABASE_URL = app["prod"]["DATABASE_URL"]
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-ga)!l78e2#bsa6($zugz+1x8*xiydm!3%(5=mg+t+vi9lvkx9z"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
-    "api.transcendence.local",
-    "transcendence.local",
+    os.getenv("FRONTEND_URL"),
+    os.getenv("BACKEND_URL"),
 ]
 
 
@@ -52,7 +82,6 @@ INSTALLED_APPS = [
     "backendApi",
     "rest_framework",
     "rest_framework_simplejwt",
-    "django_filters",
     "corsheaders",
 ]
 
@@ -95,14 +124,12 @@ DATABASES = {
     "default": {
         # Config database Postgres
         "ENGINE": "django.db.backends.postgresql",
-        "URL": os.getenv(
-            "DATABASE_URL", "postgres://datran:12345678@db:5432/transcendence"
-        ),
-        "NAME": os.getenv("POSTGRES_DB", "transcendence"),
-        "USER": os.getenv("POSTGRES_USER", "datran"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "transcendence"),
-        "HOST": "localhost",  # os.getenv("POSTGRES_HOST", "localhost"),
-        "PORT": os.getenv("POSTGRES_PORT", "5432"),
+        "URL": DATABASE_URL,
+        "NAME": POSTGRES_DB,
+        "USER": POSTGRES_USER,
+        "PASSWORD": POSTGRES_PASSWORD,
+        "HOST": POSTGRES_HOST,
+        "PORT": POSTGRES_PORT,
     }
 }
 
@@ -154,10 +181,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ],
-    "DEFAULT_FILTER_BACKENDS": [
-        "django_filters.rest_framework.DjangoFilterBackend",
-    ],
+    ]
 }
 
 SIMPLE_JWT = {

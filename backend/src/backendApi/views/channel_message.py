@@ -3,7 +3,6 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
 from backendApi.serializers.channel_message import ChannelMessageSerializer
 from datetime import datetime
 
@@ -11,8 +10,6 @@ from datetime import datetime
 class ChannelMessageViewSet(viewsets.ModelViewSet):
     queryset = ChannelMessage.objects.all()
     serializer_class = ChannelMessageSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = "__all__"
 
     def get_queryset(self):
         return super().get_queryset().order_by("id")

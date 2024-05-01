@@ -7,7 +7,6 @@ from backendApi.serializers.muted_user import MutedUserSerializer
 from backendApi.serializers.user import UserSerializer
 from django.db.models import Q
 from django.utils.dateparse import parse_date
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
@@ -17,8 +16,6 @@ from rest_framework.response import Response
 class FriendshipViewSet(viewsets.ModelViewSet):
     queryset = Friendship.objects.all()
     serializer_class = FriendshipSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = "__all__"
 
     def get_queryset(self):
         return super().get_queryset().order_by("id")

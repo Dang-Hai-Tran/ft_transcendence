@@ -5,14 +5,11 @@ from rest_framework.decorators import action
 from backendApi.models import Notification, User
 from backendApi.serializers.notification import NotificationSerializer
 
-from django_filters.rest_framework import DjangoFilterBackend
 
 
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = "__all__"
 
     # Create a new notification view
     @action(detail=False, methods=["post"])
