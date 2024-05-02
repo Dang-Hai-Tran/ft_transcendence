@@ -12,7 +12,8 @@ COPY src /home/backend/src
 WORKDIR /home/backend/src
 
 RUN pipenv install
+RUN chmod +x /home/backend/src/start.sh
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "pipenv run python manage.py migrate && pipenv run python manage.py runserver 0.0.0.0:8000"]
+CMD ["sh", "-c", "/home/backend/src/start.sh"]
